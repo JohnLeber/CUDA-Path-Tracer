@@ -55,6 +55,7 @@ void InputLayouts::DestroyAll()
 {
 	ReleaseCOM(PosNormal);
 	ReleaseCOM(Basic32);
+	ReleaseCOM(VertexPos);
 }
 
 #pragma endregion

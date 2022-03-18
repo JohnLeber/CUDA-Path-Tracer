@@ -44,13 +44,22 @@ CMainFrame::CMainFrame() noexcept
 //-------------------------------------------------------------//
 CMainFrame::~CMainFrame()
 {
-	//D3D
+	//D3D  
+	/*ID3D11Texture2D* m_pDepthStencilBuffer = 0;
+	ID3D11RenderTargetView* m_pRenderTargetView = 0;
+	ID3D11DepthStencilView* m_pDepthStencilView = 0;*/
+
+	if (m_pDepthStencilBuffer)
+	{
+		m_pDepthStencilBuffer->Release();
+		m_pDepthStencilBuffer = 0;
+	}
 	if (m_pD3DImmediateContext)
 	{
 		m_pD3DImmediateContext->ClearState();
 		m_pD3DImmediateContext->Release();
 	}
-
+	 
 	if (m_pD3DDevice)
 	{
 		m_pD3DDevice->Release();
@@ -76,25 +85,13 @@ CMainFrame::~CMainFrame()
 		m_pDXGIFactory->Release();
 	}
 
+	if (m_pDebug) {
+	//	m_pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+		m_pDebug->Release();
+	}
+
 	if (gGlobalData)
 	{ 
-		for (auto& i : gGlobalData->m_vMeshes)
-		{
-			i.Clear(); 
-		}
-		for (auto& i : gGlobalData->m_vMaterials)
-		{
-			if (i.mDiffuseMapSRV)
-			{
-				i.mDiffuseMapSRV->Release();
-				i.mDiffuseMapSRV = 0;
-			}
-			if (i.m_pData)
-			{
-				delete[] i.m_pData;
-				i.m_pData = 0;
-			}
-		}
 		delete gGlobalData;
 		gGlobalData = 0;
 	}
@@ -245,6 +242,7 @@ bool CMainFrame::Initialize()
 				}
 				mat.strName = CA2T(m->name);
 				gGlobalData->m_vMaterials.push_back(mat);
+				texResource->Release();
 			}
 		}
 		/*
@@ -407,16 +405,14 @@ bool CMainFrame::Initialize()
 		pPoints = 0;
 
 		mesh.CreateBuffers(m_pD3DDevice, i.numFaces, (BYTE*)pVBData0, pIndex);
-
-	 
-
+		 
 		gGlobalData->m_vMeshes.push_back(mesh);
 
 		delete[] pVBData0;
 		delete[] pIndex;
 	}
 
-
+	objMesh.Free();
 	sort(gGlobalData->m_vMeshes.begin(), gGlobalData->m_vMeshes.end(), [](const CMesh& a, const CMesh& b) -> bool
 		{
 			return a.nNumTriangles > b.nNumTriangles;
@@ -518,7 +514,7 @@ bool CMainFrame::InitD3D()
 		AfxMessageBox(L"D3D11CreateDevice Failed.");
 		return false;
 	}
-
+	hr = m_pD3DDevice->QueryInterface(__uuidof(ID3D11Debug), (void**)&m_pDebug);
 	if (featureLevel != D3D_FEATURE_LEVEL_11_0)
 	{
 		AfxMessageBox(L"Direct3D Feature Level 11 unsupported.");

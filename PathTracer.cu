@@ -4,7 +4,7 @@
 #include <Windows.h>//needed to save output as a bitmap file.
 #include <stdio.h>
 #include "PathTracer.h"
-#include "CUDAProgress.h"
+#include "PTProgress.h"
 //#include <thrust/device_vector.h>
 //#include <thrust/random.h>
 #include <curand_kernel.h>
@@ -374,21 +374,23 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
     return rgb;
 }
 //--------------------------------------------------------------------//
-void CPathTracer::FreeMesh(CUDAMesh* pDst)
+void CCUDAPathTracer::FreeMesh(CUDAMesh* pDst)
 {
     if (pDst)
     {
+        CCUDAVertex* pVert = pDst->pVertices;
         if (pDst->pMesh) {
             for (int h = 0; h < 8; h++) {
                 FreeMesh(&pDst->pMesh[h]);
-            }
+            } 
             cudaFree(pDst->pMesh);
         }
+        cudaFree(pVert);
     }
-    cudaFree(pDst->pVertices);
+    
 }
 //--------------------------------------------------------------------//
-void CPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc)
+void CCUDAPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc)
 { 
     cudaError_t cudaStatus;
     if (pSrc->pMesh)
@@ -409,14 +411,14 @@ void CPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc)
     {
         cudaStatus = cudaMalloc((void**)&pVert, 3 * pSrc->nNumTriangles * sizeof(CCUDAVertex));//allocate memory for vertices on device
         cudaStatus = cudaMemcpy(pVert, pSrc->pVertices, 3 * pSrc->nNumTriangles * sizeof(CCUDAVertex), cudaMemcpyHostToDevice);//copy array of vertices to device
-        cudaStatus = cudaMemcpy(&(pDst->pVertices), &pVert, sizeof(CCUDAVertex*), cudaMemcpyHostToDevice);//cleanup pointer
     }
+    cudaStatus = cudaMemcpy(&(pDst->pVertices), &pVert, sizeof(CCUDAVertex*), cudaMemcpyHostToDevice);//cleanup pointer (which may be zero if no triangles);
 
-    cudaStatus = cudaMemcpy(&(pDst->bbmin), &(pSrc->bbmin), sizeof(float3), cudaMemcpyHostToDevice);//deep copy
-    cudaStatus = cudaMemcpy(&(pDst->bbmax), &(pSrc->bbmax), sizeof(float3), cudaMemcpyHostToDevice);//deep copy
-    cudaStatus = cudaMemcpy(&(pDst->nNumTriangles), &(pSrc->nNumTriangles), sizeof(long), cudaMemcpyHostToDevice);//deep copy
-    cudaStatus = cudaMemcpy(&(pDst->bLight), &(pSrc->bLight), sizeof(bool), cudaMemcpyHostToDevice);//deep copy
-    cudaStatus = cudaMemcpy(&(pDst->BB), &(pSrc->BB), sizeof(CCUDAAxisAlignedBox), cudaMemcpyHostToDevice);//deep copy
+    cudaStatus = cudaMemcpy(&(pDst->bbmin), &(pSrc->bbmin), sizeof(float3), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(&(pDst->bbmax), &(pSrc->bbmax), sizeof(float3), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(&(pDst->nNumTriangles), &(pSrc->nNumTriangles), sizeof(long), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(&(pDst->bLight), &(pSrc->bLight), sizeof(bool), cudaMemcpyHostToDevice);
+    cudaStatus = cudaMemcpy(&(pDst->BB), &(pSrc->BB), sizeof(CCUDAAxisAlignedBox), cudaMemcpyHostToDevice);
 }
 //--------------------------------------------------------------------//
 __global__ void PTKernel(volatile int* progress, float3* pOutout, long nClientWidth, long nClientHeight, long nNumSamples, long nDiv, float P0, float P1, float* pToLocal,
@@ -478,7 +480,7 @@ __global__ void PTKernel(volatile int* progress, float3* pOutout, long nClientWi
     }
 }
 //--------------------------------------------------------------------//
-void CPathTracer::CalcRays(CCUDACallback* pCallback, float3* pOutputImage, long nClientWidth, long nClientHeight, long nNumSamples, long nDiv, float P0, float P1, float ToLocal[4][4],
+void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, long nClientWidth, long nClientHeight, long nNumSamples, long nDiv, float P0, float P1, float ToLocal[4][4],
                            float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, CUDAMesh* pVB, long nNumMeshs)
 {
     long nWidth = nClientWidth / nDiv;
@@ -570,7 +572,7 @@ void CPathTracer::CalcRays(CCUDACallback* pCallback, float3* pOutputImage, long 
     //send progress back to caller
     if (pCallback)
     {
-        pCallback->CUDAProgress(0, nWidth * nHeight);
+        pCallback->UpdateProgress(0, nWidth * nHeight);
         //https://stackoverflow.com/questions/20345702/how-can-i-check-the-progress-of-matrix-multiplication
         int nProgress = 0;
         do {
@@ -578,7 +580,7 @@ void CPathTracer::CalcRays(CCUDACallback* pCallback, float3* pOutputImage, long 
             int nProgress1 = (*h_progress) * 100 / nWidth / nHeight;
             if (nProgress1 > nProgress) {
                 nProgress = nProgress1;
-                pCallback->CUDAProgress( *h_progress, nWidth * nHeight);
+                pCallback->UpdateProgress( *h_progress, nWidth * nHeight);
             }
         } while (*h_progress < nWidth * nHeight - 2);
     }
@@ -602,7 +604,7 @@ Error:
 
     for (int h = 0; h < nNumMeshs; h++)
     {
-      //  FreeMesh(&pCUDAVB[h]);
+    //    FreeMesh(&pCUDAVB[h]);
     }
     cudaFree(pCUDAVB);
     cudaFree(pToLocal);

@@ -6,22 +6,11 @@
 #include "Camera.h" 
 #include "xnacollision.h"
 #include "vertex.h"
-#include "CUDAProgress.h"
+#include "PTProgress.h"
 
-class CLight
-{
-public:
-	CLight()
-	{
-	}
-	DirectX::XMFLOAT3 colour = {1, 1, 1};
-	DirectX::XMFLOAT3 direction = { 0, 1, 0 }; 
-	DirectX::XMFLOAT3 pos = { 0, 0, 0 };
-	float nScalar = 3000;
-	float nIntensity = 1;
-};
+ 
 struct CUDAMesh;
-class CRayTracerView : public CView, CCUDACallback
+class CRayTracerView : public CView, CPTCallback
 {
 protected: // create from serialization only
 	CRayTracerView() noexcept;
@@ -50,7 +39,7 @@ public:
 public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 
-	void CUDAProgress(long nProgress, long nTotal);
+	void UpdateProgress(long nProgress, long nTotal);
 protected:
 	virtual void OnInitialUpdate(); // called first time after construct
 	long m_nNumSamples = 4;
@@ -63,10 +52,7 @@ protected:
 	}
 
 	void CopyMesh(CUDAMesh* pDst, CMesh* src);
-	bool Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, bool bHitOnly, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml, DirectX::XMFLOAT3& rgb, float& nHitDist);
-	DirectX::XMFLOAT3 Radiance(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, const int& depth, unsigned short* Xi);
-	void CreateCoordinateSystem(const DirectX::XMVECTOR& N, DirectX::XMFLOAT3& Nt, DirectX::XMFLOAT3& Nb);
-	DirectX::XMFLOAT3 uniformSampleHemisphere(const float& r1, const float& r2);
+	void FreeMesh(CUDAMesh* pDst);
 // Implementation
 public:
 	virtual ~CRayTracerView();
@@ -85,13 +71,10 @@ protected:
 	long m_nSunIndexCount = 0;
 	DirectionalLight mDirLights[3]; 
 	ID3D11Buffer* mSunVB = 0;
-	ID3D11Buffer* mSunIB = 0;
-
+	ID3D11Buffer* mSunIB = 0; 
 	ID3D11Buffer* mRayVB = 0;
-	bool RayTriangleIntersect(
-		const DirectX::XMFLOAT3& v0, DirectX::XMFLOAT3& v1, DirectX::XMFLOAT3& v2,
-		const DirectX::XMFLOAT3& orig, const DirectX::XMFLOAT3& dir,
-		float& tnear, float& u, float& v);
+
+	 
 	//debug ray
 	bool m_bRayValid = false;
  
@@ -139,8 +122,6 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-
- 
 };
 
 #ifndef _DEBUG  // debug version in RayTracerView.cpp

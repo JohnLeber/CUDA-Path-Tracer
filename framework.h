@@ -79,6 +79,19 @@ struct CMat
 	ID3D11ShaderResourceView* mDiffuseMapSRV = 0;
 }; 
 //-------------------------------------------------------------------------------//
+class CLight
+{
+public:
+	CLight()
+	{
+	}
+	DirectX::XMFLOAT3 colour = { 1, 1, 1 };
+	DirectX::XMFLOAT3 direction = { 0, 1, 0 };
+	DirectX::XMFLOAT3 pos = { 0, 0, 0 };
+	float nScalar = 3000;
+	float nIntensity = 1;
+};
+//-------------------------------------------------------------------------------//
 struct CMesh
 {
 	//for sun

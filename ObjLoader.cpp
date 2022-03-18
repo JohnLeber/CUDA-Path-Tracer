@@ -129,14 +129,6 @@ void InspectFaceLine(const char* sLine, int& vCount,
 	vCount = spaceCount;
 }
 
-
-
-
-
-
-
-
-
 // Loads an .mtl file. This function is primarily used by LoadObj().
 // Returns 0 on failure, 1 on success.
 INT LoadMtlLib(LPCTSTR sFileName, std::vector<TObjMaterial*>& materials)
