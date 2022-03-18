@@ -9,7 +9,7 @@ A DirectX 11/MFC application that implements a simple path tracer. The applicati
 
 ## Notes
 
-1) The only use of this application is to learn about and experiment with basic path tracing. I can't imagine the images that it produces being useful for any other purposes although I think the images that it produces are technically correct. It is very slow and there are numerous optimizations that could be made, but I do not have time.
+1) The only use of this application is to learn about and experiment with basic path tracing. I can't imagine the images that it produces being useful for any other purposes although I think the images are technically correct. It is very slow and there are numerous optimizations that could be made, but I do not have time.
 2) On a RTX 3060 the CUDA code only seems to run bewteen 3 and 8 times faster than the CPU version (the CPU was an 8 core Intel 9700k).
 3) There is only one material - everything is diffuse.
 4) I use a very simple octree acceleration structure to reduce ray/triangle intersection tests. This speeds it up a bit, but it is still along way from being optimal.
