@@ -34,7 +34,7 @@ public:
 // Operations
 public:
 	void CalcRayCUDA(long nNumSamples);
-	void CalcRayCPU(long nNumSamples);
+	void CalcRayCPU(long nNumSamples, bool bUseTextures);
 	bool Init();
 
 	void SetSunPos(float nAngle);
@@ -63,8 +63,8 @@ protected:
 	}
 
 	void CopyMesh(CUDAMesh* pDst, CMesh* src);
-	bool Trace(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, bool bHitOnly, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml, DirectX::XMFLOAT3& rgb, float& nHitDist);
-	DirectX::XMFLOAT3 Radiance(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, const int& depth, unsigned short* Xi);
+	bool Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, bool bHitOnly, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml, DirectX::XMFLOAT3& rgb, float& nHitDist);
+	DirectX::XMFLOAT3 Radiance(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, const int& depth, unsigned short* Xi);
 	void CreateCoordinateSystem(const DirectX::XMVECTOR& N, DirectX::XMFLOAT3& Nt, DirectX::XMFLOAT3& Nb);
 	DirectX::XMFLOAT3 uniformSampleHemisphere(const float& r1, const float& r2);
 // Implementation

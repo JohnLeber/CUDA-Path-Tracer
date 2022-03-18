@@ -839,7 +839,7 @@ bool CMesh::Intersect(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, f
 	return bHit;
 }
 //-----------------------------------------------------------------------//
-bool CRayTracerView::Trace(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, bool bHitOnly, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml, DirectX::XMFLOAT3& rgb, float& nHitDist)
+bool CRayTracerView::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, bool bHitOnly, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml, DirectX::XMFLOAT3& rgb, float& nHitDist)
 { 
 	float tmin = MathHelper::Infinity;
 	float u = 0;
@@ -868,6 +868,7 @@ bool CRayTracerView::Trace(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayD
 	if (bHit)
 	{
 		if (bHitOnly) return true;
+		 
 		//Get surface properties (texture and uv...).
 		/*if (v >= 1) { v = fmod(v, 1); }
 		if (u >= 1) { u = fmod(u, 1); }*/
@@ -877,11 +878,20 @@ bool CRayTracerView::Trace(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayD
 		while (v < 0) { v = v + 1; }
 		long j = nTexWidth * v;
 		long h = nTexHeight * u;
-		if (nTexWidth > 0) {
-			DWORD dwPixel = pTexData[j * nTexWidth + h];
-			rgb.x = 0.5f;//(float)(LOBYTE(LOWORD(dwPixel))) / 255.0f;
-			rgb.y = 0.5f;//(float)(HIBYTE(LOWORD(dwPixel))) / 255.0f;
-			rgb.z = 0.5f;//(float)(LOBYTE(HIWORD(dwPixel))) / 255.0f;
+		if (!bUseTextures) 
+		{//gray/clay model
+			rgb.x = 0.5f;
+			rgb.y = 0.5f;
+			rgb.z = 0.5f;
+		}
+		else
+		{//use the textures
+			if (nTexWidth > 0) {
+				DWORD dwPixel = pTexData[j * nTexWidth + h];
+				rgb.x = (float)(LOBYTE(LOWORD(dwPixel))) / 255.0f;
+				rgb.y = (float)(HIBYTE(LOWORD(dwPixel))) / 255.0f;
+				rgb.z = (float)(LOBYTE(HIWORD(dwPixel))) / 255.0f;
+			}
 		}
 	}
 
@@ -890,7 +900,7 @@ bool CRayTracerView::Trace(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayD
 std::default_random_engine generator;
 std::uniform_real_distribution<float> distribution(0, 1);
 //-----------------------------------------------------------------------//
-DirectX::XMFLOAT3 CRayTracerView::Radiance(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, const int& depth, unsigned short* Xi)
+DirectX::XMFLOAT3 CRayTracerView::Radiance(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, const int& depth, unsigned short* Xi)
 { 
 	//CMesh meshhit;
 	DirectX::XMFLOAT3 rgb = { 0, 0, 0 };
@@ -903,22 +913,8 @@ DirectX::XMFLOAT3 CRayTracerView::Radiance(DirectX::XMVECTOR& rayOrigin, DirectX
 	float nHitDist = 0;
 	DirectX::XMFLOAT3 directLighting = { 0, 0, 0 };
 	DirectX::XMFLOAT3 indirectLighting = { 0, 0, 0 };
-	//for (auto& m : gGlobalData->m_vMeshes)
-	//{
-	//	float ua = 0;
-	//	float va = 0;
-	//	if (!m.Intersect(rayOrigin, rayDir, ua, va, dist, nml)) {
-	//		continue;
-	//	}
-	//	bHit = true;
-	//	u = ua;
-	//	v = va;
-	//	//meshhit = m;
-	//	nTexWidth = m.nWidth;
-	//	nTexHeight = m.nHeight;
-	//	pTexData = m.m_pData;
-	//}
-	bHit = Trace(rayOrigin, rayDir, false, hitpoint, nml, rgb, nHitDist);
+ 
+	bHit = Trace(bUseTextures, rayOrigin, rayDir, false, hitpoint, nml, rgb, nHitDist);
 	if (bHit)
 	{ 
 		//assume diffuse material
@@ -933,7 +929,7 @@ DirectX::XMFLOAT3 CRayTracerView::Radiance(DirectX::XMVECTOR& rayOrigin, DirectX
 		DirectX::XMFLOAT3 hitsunnml = { 0, 0, 0 };
 		DirectX::XMFLOAT3 sunhitpoint = { 0, 0, 0 };
 		DirectX::XMFLOAT3 hitrgb = { 0, 0, 0 };
-		bHit = Trace(hitPoint + bias * hitNml, sunDir, true, sunhitpoint, hitsunnml, hitrgb, nHitDist);
+		bHit = Trace(bUseTextures, hitPoint + bias * hitNml, sunDir, true, sunhitpoint, hitsunnml, hitrgb, nHitDist);
 		if (!bHit)
 		{ 
 			DirectX::XMFLOAT3 dp = { 0,0,0 };
@@ -947,7 +943,7 @@ DirectX::XMFLOAT3 CRayTracerView::Radiance(DirectX::XMVECTOR& rayOrigin, DirectX
 		//https://www.scratchapixel.com/code.php?id=34&origin=/lessons/3d-basic-rendering/global-illumination-path-tracing&src=0
 		if (m_bGlobalIllumination)
 		{
-			uint32_t N = m_nNumSamples;// / (depth + 1); 
+			uint32_t N = m_nNumSamples;
 			DirectX::XMFLOAT3 Nt;
 			DirectX::XMFLOAT3 Nb;
 			DirectX::XMFLOAT3 hitNormal = { 0, 0, 0 };
@@ -964,7 +960,7 @@ DirectX::XMFLOAT3 CRayTracerView::Radiance(DirectX::XMVECTOR& rayOrigin, DirectX
 					sample.x * Nb.y + sample.y * hitNormal.y + sample.z * Nt.y,
 					sample.x * Nb.z + sample.y * hitNormal.z + sample.z * Nt.z);
 				DirectX::XMVECTOR sampleWorld = DirectX::XMLoadFloat3(&sampleWorldF);
-				DirectX::XMFLOAT3 rd = Radiance(hitPoint + bias * sampleWorld, sampleWorld, depth + 1, Xi);
+				DirectX::XMFLOAT3 rd = Radiance(bUseTextures, hitPoint + bias * sampleWorld, sampleWorld, depth + 1, Xi);
 				indirectLighting.x = indirectLighting.x + r1 * rd.x / pdf;
 				indirectLighting.y = indirectLighting.y + r1 * rd.y / pdf;
 				indirectLighting.z = indirectLighting.z + r1 * rd.z / pdf;
@@ -1106,9 +1102,11 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples)
 	DWORD dwStart = GetTickCount();
 	PT.CalcRays(this, pOutput, m_nClientWidth, m_nClientHeight, nNumSamples, nDiv, P(0, 0), P(1, 1), toLocal.m, sunPos, sunDir, sunIntensity, m_bGlobalIllumination, pVB, nNumMeshs);
 	DWORD dwEnd = GetTickCount();
-	CString strTime;
+
+	/*CString strTime;
 	strTime.Format(L"CUDA %d", dwEnd - dwStart);
-	AfxMessageBox(strTime);
+	AfxMessageBox(strTime);*/
+	
 	delete[] pVB;
 	pVB = 0;
 
@@ -1143,7 +1141,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples)
 	delete pImage;
 }
 //-----------------------------------------------------------------------//
-void CRayTracerView::CalcRayCPU(long nNumSamples)
+void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures)
 {
 	if (nNumSamples < 1) nNumSamples = 1;
 	if (nNumSamples > 10000) nNumSamples = 10000;
@@ -1204,7 +1202,7 @@ omp_set_num_threads(16);
 			DirectX::XMStoreFloat3(&origin, rayOrigin);
 			 
 			int depth = 0;
-			DirectX::XMFLOAT3 rgb = Radiance(rayOrigin, rayDir, depth, Xi);
+			DirectX::XMFLOAT3 rgb = Radiance(bUseTextures, rayOrigin, rayDir, depth, Xi);
 			 
 			::SendMessage(gGlobalData->m_hSideWnd, WM_PROGRESS_UPDATE, nProgress++ , nImageWidth * nImageHeight);
 
@@ -1233,8 +1231,9 @@ omp_set_num_threads(16);
 	}
 
 	DWORD dwEnd = GetTickCount();
-	CString strTime;
-	strTime.Format(L"%d", dwEnd - dwStart);
+
+	//CString strTime;
+	//strTime.Format(L"%d", dwEnd - dwStart);
 	//AfxMessageBox(strTime);
 
 	if (mRayVB) {

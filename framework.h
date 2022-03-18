@@ -49,9 +49,7 @@
 #include <dwrite_3.h> 
 #include "DirectxMath.h"
 #include <DirectXPackedVector.h>
- 
-
-#include "..\MRIServer\MRIServer_i.h"
+  
 
 //#include "ObjLoader.h"
 #include "xnacollision.h"

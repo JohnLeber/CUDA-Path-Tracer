@@ -252,11 +252,12 @@ void CSideView::OnBnClickedCalcRay()
 {
     CWaitCursor wait;
     long nNumSamples = GetDlgItemInt(IDC_SAMPLES);
+    bool bUseTextures = IsDlgButtonChecked(IDC_USE_TEXTURES) == BST_CHECKED;
     if (IsDlgButtonChecked(IDC_CUDA) == BST_CHECKED) {
         ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCUDA(nNumSamples);
     }
     else   {
-        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCPU(nNumSamples);
+        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCPU(nNumSamples, bUseTextures);
     }
 } 
 //--------------------------------------------------------------------//
