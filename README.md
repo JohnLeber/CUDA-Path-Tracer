@@ -16,6 +16,7 @@ A DirectX 11/MFC application that implements a simple path tracer. The applicati
 5) I have tested the CUDA code on an GTX 1080 and a RTX 3060. If no CUDA device is present, it is likely to crash.
 6) If replacing the OBJ model, all faces must be converted to triangles else the OBJ loading file may not load the model correctly.
 7) To compile the application I used CUDA 11.6 and Visual studio community edition - be sure to install the MFC desktop module.
+8) I changed the extension of the Sponza OBJ file to .mesh to avoid gitignore filtering out OBJ files. There was probably a better way to do this but...
 
 ## Credits
 
