@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include "PathTracer.h"
 #include "PTProgress.h"
-//#include <thrust/device_vector.h>
 //#include <thrust/random.h>
 #include <curand_kernel.h>
 
@@ -95,9 +94,8 @@ __device__ bool IntersectRayAxisAlignedBox(float3& rayOrigin, float3& rayDir, fl
 {
     //largely copied from the link below
     //https://gamedev.stackexchange.com/questions/18436/most-efficient-aabb-vs-ray-collision-algorithms/18459#18459
-
-
-   // float t = 0;
+     
+    // float t = 0;//distance
     float3 dirfrac;
     dirfrac.x = 1.0f / rayDir.x;
     dirfrac.y = 1.0f / rayDir.y;
@@ -131,7 +129,6 @@ __device__ bool IntersectRayAxisAlignedBox(float3& rayOrigin, float3& rayDir, fl
   //  t = tmin;
     return true;
 }
-
 //-----------------------------------------------------------------------// 
 __device__ void CreateCoordinateSystem(float3& N, float3& Nt, float3& Nb)
 {
@@ -150,6 +147,7 @@ __device__ void CreateCoordinateSystem(float3& N, float3& Nt, float3& Nb)
 __device__ bool IntersectRayTriangle(float3 rayOrigin, float3 rayDir, float3 v0, float3 v1, float3 v2, float* pDist, float* pU, float* pV)
 {
     //https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/moller-trumbore-ray-triangle-intersection
+    //Largely based on the XNA  implemention (see CPU version)
     float kEpsilon = 0.00001f;
     float3 e1 = Vec3Subtract(v1, v0);
     float3 e2 = Vec3Subtract(v2, v0);
@@ -272,19 +270,9 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
 
         //Hard code the colour to grey - my CUDA implementqation doesn't support loading textures, although it wouldn't be hard to add.
         ////Get surface properties (texture and uv...).
-        while (u > 1) { u = u - 1; }
-        while (v > 1) { v = v - 1; }
-        while (u < 0) { u = u + 1; }
-        while (v < 0) { v = v + 1; }
-        //long j = nTexWidth * v;
-        //long h = nTexHeight * u;
-        //if (nTexWidth > 0) 
-        { 
-            // DWORD dwPixel = pTexData[j * nTexWidth + h];
-            rgb.x = 0.5f;//(float)(LOBYTE(LOWORD(dwPixel))) / 255.0f;
-            rgb.y = 0.5f;//(float)(HIBYTE(LOWORD(dwPixel))) / 255.0f;
-            rgb.z = 0.5f;//(float)(LOBYTE(HIWORD(dwPixel))) / 255.0f;
-        }
+        rgb.x = 0.5f;
+        rgb.y = 0.5f;
+        rgb.z = 0.5f;
     }
     return bHit;
 }
@@ -362,9 +350,7 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
                 indirectLighting.y = indirectLighting.y + r1 * rd.y / pdf;
                 indirectLighting.z = indirectLighting.z + r1 * rd.z / pdf;
             }
-            indirectLighting.x = indirectLighting.x / N;
-            indirectLighting.y = indirectLighting.y / N;
-            indirectLighting.z = indirectLighting.z / N;
+            indirectLighting = Vec3DivScalar(indirectLighting, N);
         }
 
         rgb.x = (directLighting.x / M_PI + 2 * indirectLighting.x) * rgb.x;
@@ -374,23 +360,7 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
     return rgb;
 }
 //--------------------------------------------------------------------//
-void CCUDAPathTracer::FreeMesh(CUDAMesh* pDst)
-{
-    if (pDst)
-    {
-        CCUDAVertex* pVert = pDst->pVertices;
-        if (pDst->pMesh) {
-            for (int h = 0; h < 8; h++) {
-                FreeMesh(&pDst->pMesh[h]);
-            } 
-            cudaFree(pDst->pMesh);
-        }
-        cudaFree(pVert);
-    }
-    
-}
-//--------------------------------------------------------------------//
-void CCUDAPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc)
+void CCUDAPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc, thrust::host_vector<CCUDAVertex*>& vVertexBuffers, thrust::host_vector<CUDAMesh*>& vMeshBuffers)
 { 
     cudaError_t cudaStatus;
     if (pSrc->pMesh)
@@ -398,9 +368,10 @@ void CCUDAPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc)
         CUDAMesh* pChildMesh = 0;
         cudaError_t cudaStatus = cudaMalloc((void**)&pChildMesh, 8 * sizeof(CUDAMesh));//allocate memory on device for child meshes
         if (cudaStatus == cudaSuccess) {
+            vMeshBuffers.push_back(pChildMesh);
             for (int h = 0; h < 8; h++)
             {
-                CopyMesh(&pChildMesh[h], &(pSrc->pMesh[h]));//deep copy
+                CopyMesh(&pChildMesh[h], &(pSrc->pMesh[h]), vVertexBuffers, vMeshBuffers);
             }
             cudaStatus = cudaMemcpy(&(pDst->pMesh), &(pChildMesh), sizeof(CUDAMesh*), cudaMemcpyHostToDevice);//cleanup pointer
         }
@@ -410,7 +381,10 @@ void CCUDAPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc)
     if (pSrc->nNumTriangles > 0)
     {
         cudaStatus = cudaMalloc((void**)&pVert, 3 * pSrc->nNumTriangles * sizeof(CCUDAVertex));//allocate memory for vertices on device
-        cudaStatus = cudaMemcpy(pVert, pSrc->pVertices, 3 * pSrc->nNumTriangles * sizeof(CCUDAVertex), cudaMemcpyHostToDevice);//copy array of vertices to device
+        if (cudaStatus == cudaSuccess) {
+            vVertexBuffers.push_back(pVert);
+            cudaStatus = cudaMemcpy(pVert, pSrc->pVertices, 3 * pSrc->nNumTriangles * sizeof(CCUDAVertex), cudaMemcpyHostToDevice);//copy array of vertices to device
+        }
     }
     cudaStatus = cudaMemcpy(&(pDst->pVertices), &pVert, sizeof(CCUDAVertex*), cudaMemcpyHostToDevice);//cleanup pointer (which may be zero if no triangles);
 
@@ -485,6 +459,8 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
 {
     long nWidth = nClientWidth / nDiv;
     long nHeight = nClientHeight / nDiv;
+    thrust::host_vector<CCUDAVertex*> vVertexBuffers;
+    thrust::host_vector<CUDAMesh*> vMeshBuffers;
    // short* devHGTData = 0;
     float3* pCUDAOutputImage = 0;
     float* pToLocal = 0;
@@ -498,7 +474,7 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
         fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
         goto Error;
     }
-
+ 
     //cudaLimitStackSize()
     // Allocate GPU buffers for output image
     cudaStatus = cudaMalloc((void**)&pCUDAOutputImage, nWidth * nHeight * sizeof(float3));
@@ -530,11 +506,12 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
-
+    
     cudaStatus = cudaMemset(pCUDAVB, 0, nNumMeshs * sizeof(CUDAMesh));
+ 
     for (int h = 0; h < nNumMeshs; h++)
     {        
-        CopyMesh(&pCUDAVB[h], &pVB[h]);
+        CopyMesh(&pCUDAVB[h], &pVB[h], vVertexBuffers, vMeshBuffers);
     }
      
     // Launch a kernel on the GPU with one thread for each element.
@@ -601,13 +578,15 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
 
 Error:
     cudaFree(pCUDAOutputImage);
-
-    for (int h = 0; h < nNumMeshs; h++)
+    for(auto& i : vVertexBuffers)
     {
-    //    FreeMesh(&pCUDAVB[h]);
+        cudaFree(i);
+    }
+    for (auto& i : vMeshBuffers)
+    {
+        cudaFree(i);
     }
     cudaFree(pCUDAVB);
     cudaFree(pToLocal);
- //   return cudaStatus;
 }
 //--------------------------------------------------------------------//
