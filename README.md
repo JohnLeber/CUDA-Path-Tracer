@@ -14,7 +14,8 @@ A DirectX 11/MFC application that implements a simple path tracer. The applicati
 3) There is only one material - everything is diffuse.
 4) I use a very simple octree acceleration structure to reduce ray/triangle intersection tests. This speeds it up a bit, but it is still along way from being optimal.
 5) I have tested the CUDA code on an GTX 1080 and a RTX 3060. If no CUDA device is present, it is likely to crash.
-6) To compile the application I used CUDA 11.6 and Visual studio community edition - be sure to install the MFC desktop module.
+6) If replacing the OBJ model, all faces must be converted to triangles else the OBJ loading file may not load the model correctly.
+7) To compile the application I used CUDA 11.6 and Visual studio community edition - be sure to install the MFC desktop module.
 
 ## Credits
 
