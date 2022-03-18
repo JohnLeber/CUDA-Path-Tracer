@@ -2,6 +2,10 @@
 
 A DirectX 11/MFC application that implements a simple path tracer. The application loads Crytek's Sponza model and allows the camera to be positioned using the mouse and WASD keys. There is a single light source that can also be positioned. There are two implemenations of the algorithm, the first using the CPU and OpenMP, and the second using CUDA.
 
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N128_Upper.png)
+
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_grey_128.png)
+
 ## Notes
 
 1) The only use of this application is to learn about and experiment with basic path tracing. I can't imagine the images that it produces being useful for any other purposes althoguhj I think the images are technically correct. It is very slow.
