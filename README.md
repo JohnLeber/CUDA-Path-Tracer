@@ -13,7 +13,7 @@ A DirectX 11/CUDA/MFC application that implements a simple ray/path tracer on po
 2) On a RTX 3060 the CUDA code only seems to run between 3 and 8 times faster than the CPU version (the CPU was an 8 core Intel 9700k).
 3) There is only one material - everything is diffuse.
 4) I use a very simple octree acceleration structure to reduce ray/triangle intersection tests. This speeds it up a bit, but it is still along way from being optimal.
-5) I have tested the CUDA code on an GTX 1080 and a RTX 3060. If no CUDA device is present, it is likely to crash.
+5) I have tested the CUDA code on an GTX 1080 and a RTX 3060. If no CUDA device is present, it is likely to crash... It is hardcoded to deviceID = 0.
 6) If replacing the OBJ model, all faces must be converted to triangles else the OBJ loading file may not load the model correctly.
 7) To compile the application, I used CUDA 11.6 and Visual studio community edition - be sure to install the MFC desktop module.
 8) I changed the extension of the Sponza OBJ file to .mesh to avoid gitignore filtering out OBJ files. There was probably a better way to do this but...
