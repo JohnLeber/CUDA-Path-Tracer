@@ -19,9 +19,11 @@ A DirectX 11/CUDA/MFC application that implements a simple ray/path tracer on po
 6) If replacing the OBJ model, all faces must be converted to triangles else the OBJ loading code may not load the model correctly.
 7) To compile the application, I used CUDA 11.6 and Visual studio 2019 community edition - be sure to install the MFC desktop module.
 8) I changed the extension of the Sponza OBJ file to .mesh to avoid gitignore filtering out OBJ files. There was probably a better way to do this but...
-
+9) To use the Crytek Sponza model define CRYTEKSPONZA in framework.h;
 ## Credits
 
-1) The code I used to load the wavefront OBJ files I got from [here](http://code-section.com/blog/dx9-obj-loader).
-2) Much of the boilerplate code used for DirectX 11 are based on samples Frank Luna's [DirectX 11 book](https://www.amazon.com/Introduction-3D-Game-Programming-DirectX/dp/1936420228).
-3) The path tracing approach is partially based on samples from [scratchpixel]( https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing) and Kevin Beason's [Global Illumination in 99 lines of C++](https://www.kevinbeason.com/smallpt/).
+1) The first Sponza model was creatd by Marko Dabrovic can can be downloaded from [here](http://hdri.cgtechniques.com/~sponza/files/). 
+2) The second Sponza model is from [Crytek](https://www.crytek.com/cryengine).
+3) The code I used to load the wavefront OBJ files I got from [here](http://code-section.com/blog/dx9-obj-loader).
+4) Much of the boilerplate code used for DirectX 11 are based on samples Frank Luna's [DirectX 11 book](https://www.amazon.com/Introduction-3D-Game-Programming-DirectX/dp/1936420228).
+5) The path tracing approach is partially based on samples from [scratchpixel]( https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing) and Kevin Beason's [Global Illumination in 99 lines of C++](https://www.kevinbeason.com/smallpt/).
