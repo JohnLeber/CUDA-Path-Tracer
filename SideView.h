@@ -77,8 +77,7 @@ public:
     afx_msg void OnBnClickedToggleMesh();
     afx_msg void OnNMCustomdrawSlider1(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-    afx_msg void OnBnClickedWireframe();
-    afx_msg void OnBnClickedGi();
+    afx_msg void OnBnClickedWireframe(); 
 };
 
 

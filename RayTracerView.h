@@ -22,8 +22,8 @@ public:
 
 // Operations
 public:
-	void CalcRayCUDA(long nNumSamples, bool bUseTextures);
-	void CalcRayCPU(long nNumSamples, bool bUseTextures);
+	void CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination);
+	void CalcRayCPU(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination);
 	bool Init();
 
 	void SetSunPos(float nAngle);
@@ -32,8 +32,7 @@ public:
 	void UpdateScene(float dt);
  
 	bool m_bShowMesh = true;
-	bool m_bWireframe = false; 
-	bool m_bGlobalIllumination = false;
+	bool m_bWireframe = false;  
 	
 // Overrides
 public:

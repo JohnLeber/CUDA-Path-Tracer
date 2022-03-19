@@ -34,11 +34,10 @@ BEGIN_MESSAGE_MAP(CSideView, CFormView)
     ON_BN_CLICKED(IDC_TOGGLE_MESH, &CSideView::OnBnClickedToggleMesh)
     ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER1, &CSideView::OnNMCustomdrawSlider1)
     ON_WM_HSCROLL()
-    ON_BN_CLICKED(IDC_WIREFRAME, &CSideView::OnBnClickedWireframe)
-    ON_BN_CLICKED(IDC_GI, &CSideView::OnBnClickedGi)
+    ON_BN_CLICKED(IDC_WIREFRAME, &CSideView::OnBnClickedWireframe) 
     ON_MESSAGE(WM_PROGRESS_UPDATE, OnProgressUpdate)
     ON_MESSAGE(WM_RENDER_START, OnRenderStart)
-    ON_MESSAGE(WM_RENDER_END, OnRenderEnd)
+    ON_MESSAGE(WM_RENDER_END, OnRenderEnd) 
 END_MESSAGE_MAP()
 //-----------------------------------------------------------------------//
 // CSideView diagnostics
@@ -89,6 +88,29 @@ void CSideView::OnInitialUpdate()
     m_SunPos.SetPos(1000);
     m_Progress.SubclassDlgItem(IDC_PROGRESS1, this);
     m_Progress.SetRange(0, 100);
+
+    CComboBox* pLighting = (CComboBox*)GetDlgItem(IDC_LIGHTING);
+    long nItem = pLighting->AddString(L"Direct light only");
+    pLighting->SetItemData(nItem, 0);
+    nItem = pLighting->AddString(L"GI and Direct light");
+    pLighting->SetItemData(nItem, 1);
+    pLighting->SetCurSel(nItem);
+
+    CComboBox* pEngine = (CComboBox*)GetDlgItem(IDC_ENGINE);
+    nItem = pEngine->AddString(L"CPU");
+    pEngine->SetItemData(nItem, 0);
+    pEngine->SetCurSel(nItem);
+    nItem = pEngine->AddString(L"CUDA (Device 0)");
+    pEngine->SetItemData(nItem, 1);
+
+    CComboBox* pDiv = (CComboBox*)GetDlgItem(IDC_DIV);
+    nItem = pDiv->AddString(L"1");
+    pDiv->SetItemData(nItem, 1);
+    nItem = pDiv->AddString(L"1/2");
+    pDiv->SetItemData(nItem, 2);
+    nItem = pDiv->AddString(L"1/4");
+    pDiv->SetItemData(nItem, 4);
+    pDiv->SetCurSel(nItem);
 }
 //-----------------------------------------------------------------------//
 bool CSideView::DoPump()
@@ -119,11 +141,19 @@ void CSideView::OnBnClickedCalcRay()
     CWaitCursor wait;
     long nNumSamples = GetDlgItemInt(IDC_SAMPLES);
     bool bUseTextures = IsDlgButtonChecked(IDC_USE_TEXTURES) == BST_CHECKED;
-    if (IsDlgButtonChecked(IDC_CUDA) == BST_CHECKED) {
-        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCUDA(nNumSamples, bUseTextures);
+    
+    CComboBox* pDiv = (CComboBox*)GetDlgItem(IDC_DIV);
+    float nDiv = pDiv->GetItemData(pDiv->GetCurSel());//divide image by this ammount to reduce computations...
+    
+    CComboBox* pLighting = (CComboBox*)GetDlgItem(IDC_LIGHTING);
+    bool bGlobalIllumination = pLighting->GetItemData(pLighting->GetCurSel()) == 1;//0 = direct light only, 1 = Global Illumination and Direct light
+
+    CComboBox* pEngine = (CComboBox*)GetDlgItem(IDC_ENGINE);
+    if (pEngine->GetItemData(pEngine->GetCurSel()) == 1) {
+        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCUDA(nNumSamples, bUseTextures, nDiv, bGlobalIllumination);//Use CUDA
     }
     else   {
-        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCPU(nNumSamples, bUseTextures);
+        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCPU(nNumSamples, bUseTextures, nDiv, bGlobalIllumination);//CPU/OpenMP
     }
 } 
 //--------------------------------------------------------------------//
@@ -153,10 +183,5 @@ void CSideView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 void CSideView::OnBnClickedWireframe()
 {
     ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->m_bWireframe = !((CMainFrame*)AfxGetMainWnd())->GetRightPane()->m_bWireframe;
-}
-//--------------------------------------------------------------------//
-void CSideView::OnBnClickedGi()
-{
-    ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->m_bGlobalIllumination = !((CMainFrame*)AfxGetMainWnd())->GetRightPane()->m_bGlobalIllumination;
 }
 //--------------------------------------------------------------------//

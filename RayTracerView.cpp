@@ -721,12 +721,11 @@ void CRayTracerView::UpdateProgress(long nProgress, long nTotal)
 	::SendMessage(gGlobalData->m_hSideWnd, WM_PROGRESS_UPDATE, nProgress, nTotal);
 }
 //-----------------------------------------------------------------------//
-void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures)
+void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination)
 {
 	if (nNumSamples < 1) nNumSamples = 1;
-	if (nNumSamples > 10000) nNumSamples = 10000;
-
-	float nDiv =1.0f;
+	if (nNumSamples > 10000) nNumSamples = 10000; 
+ 
 	long nImageWidth = m_nClientWidth / nDiv;
 	long nImageHeight = m_nClientHeight / nDiv;
 	CCUDAPathTracer PT;
@@ -810,7 +809,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures)
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	//Execute raytracing
-	PT.CalcRays(this, pOutput, m_nClientWidth, m_nClientHeight, nNumSamples, nDiv, P(0, 0), P(1, 1), toLocal.m, sunPos, sunDir, sunIntensity, m_bGlobalIllumination, bUseTextures, pVB, nNumMeshs, pMaterials, nNumMaterials);
+	PT.CalcRays(this, pOutput, m_nClientWidth, m_nClientHeight, nNumSamples, nDiv, P(0, 0), P(1, 1), toLocal.m, sunPos, sunDir, sunIntensity, bGlobalIllumination, bUseTextures, pVB, nNumMeshs, pMaterials, nNumMaterials);
 	DWORD dwEnd = GetTickCount();
 	
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -861,12 +860,12 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures)
 	delete pImage;
 }
 //-----------------------------------------------------------------------//
-void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures)
+void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination)
 {
 	if (nNumSamples < 1) nNumSamples = 1;
 	if (nNumSamples > 10000) nNumSamples = 10000;
 	m_nNumSamples = nNumSamples;
-	float nDiv = 4.0f;
+ 
 	long nImageWidth = m_nClientWidth / nDiv;
 	long nImageHeight = m_nClientHeight / nDiv;
 	m_Camera.UpdateViewMatrix();
@@ -891,7 +890,7 @@ void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures)
  
 	::SendMessage(gGlobalData->m_hSideWnd, WM_RENDER_START, 0, 0);
 	CCPUPathTracer PT;
-	PT.CalcRays(this, pImageData, m_nClientWidth, m_nClientHeight, nDiv, nNumSamples, P(0, 0), P(1, 1), toLocal, m_Sun, m_bGlobalIllumination, bUseTextures);
+	PT.CalcRays(this, pImageData, m_nClientWidth, m_nClientHeight, nDiv, nNumSamples, P(0, 0), P(1, 1), toLocal, m_Sun, bGlobalIllumination, bUseTextures);
 
   
 	/*if (h == 0 && j == 0)

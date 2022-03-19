@@ -23,6 +23,10 @@
 #define IDC_BORDER                      1010
 #define IDC_PROGRESS1                   1011
 #define IDC_DURATION                    1012
+#define IDC_LIGHTING                    1013
+#define IDC_ENGINE                      1014
+#define IDC_ENGINE2                     1015
+#define IDC_DIV                         1015
 #define ID_FILE_E                       32771
 #define ID_FILE_EXIT                    32772
 
@@ -32,7 +36,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        313
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           316
 #endif
 #endif
