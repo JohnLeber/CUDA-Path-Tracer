@@ -120,7 +120,7 @@ void CSideView::OnBnClickedCalcRay()
     long nNumSamples = GetDlgItemInt(IDC_SAMPLES);
     bool bUseTextures = IsDlgButtonChecked(IDC_USE_TEXTURES) == BST_CHECKED;
     if (IsDlgButtonChecked(IDC_CUDA) == BST_CHECKED) {
-        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCUDA(nNumSamples);
+        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCUDA(nNumSamples, bUseTextures);
     }
     else   {
         ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCPU(nNumSamples, bUseTextures);

@@ -230,10 +230,10 @@ bool CMainFrame::Initialize()
 					BYTE* pArray = (BYTE*)image.GetBits();
 					int nPitch = image.GetPitch();
 					int nBitCount = image.GetBPP() / 8;
-					mat.m_pData = new DWORD[mat.nWidth * mat.nHeight];
+					mat.m_pTexData = new DWORD[mat.nWidth * mat.nHeight];
 					for (int h = 0; h < mat.nWidth; h++) {
 						for (int j = 0; j < mat.nHeight; j++) {
-							mat.m_pData[j * mat.nWidth + h] = MAKELONG(
+							mat.m_pTexData[j * mat.nWidth + h] = MAKELONG(
 								MAKEWORD( *(pArray + nPitch * j + h * nBitCount + 0), *(pArray + nPitch * j + h * nBitCount + 1) ),
 								MAKEWORD( *(pArray + nPitch * j + h * nBitCount + 2), 255)
 							);
@@ -375,7 +375,7 @@ bool CMainFrame::Initialize()
 		bool bFoundmat = false;
 		for (auto mt : gGlobalData->m_vMaterials) {
 			if (mt.strName == mesh.strMaterial) {
-				mesh.m_pData = mt.m_pData;
+				mesh.m_pTexData = mt.m_pTexData;
 				mesh.nWidth = mt.nWidth;
 				mesh.nHeight = mt.nHeight;
 				bFoundmat = true;

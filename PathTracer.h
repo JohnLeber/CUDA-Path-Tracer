@@ -1,6 +1,7 @@
 #pragma once
 //#include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
+
 //-------------------------------------------------------------//
 struct CCUDAAxisAlignedBox
 {
@@ -15,6 +16,13 @@ struct CCUDAVertex
 	float2 tex;
 };
 //-------------------------------------------------------------//
+struct CUDAMaterial
+{
+	float3* pTexData = 0;
+	long nWidth = 0;
+	long nHeight = 0;
+};
+//-------------------------------------------------------------//
 struct CUDAMesh
 {
 	CUDAMesh* pMesh = 0;
@@ -23,7 +31,9 @@ struct CUDAMesh
 	long nNumTriangles = 0;
 	CCUDAAxisAlignedBox BB;
 	float3 bbmin, bbmax; // bounding box.
+	CUDAMaterial* pMaterial = 0;
 };
+//-------------------------------------------------------------//
 class CPTCallback;
 //-------------------------------------------------------------//
 class CCUDAPathTracer
@@ -32,6 +42,6 @@ class CCUDAPathTracer
 	static void FreeMesh(CUDAMesh* pDst);
 public: 
 	static void CalcRays(CPTCallback* pCallback, float3* pOutputImage, long nClientWidth, long nClientHeight, long nNumSamples, long nDiv, float P0, float P1, float ToLocal[4][4],
-		float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, CUDAMesh* pVB, long nNumMeshs);
+		float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, bool bUseTextures, CUDAMesh* pVB, long nNumMeshs, CUDAMaterial* pTextures, long nNumTextures);
 };
 //-------------------------------------------------------------//

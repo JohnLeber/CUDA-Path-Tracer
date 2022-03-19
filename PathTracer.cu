@@ -7,7 +7,7 @@
 #include "PTProgress.h"
 //#include <thrust/random.h>
 #include <curand_kernel.h>
-
+//#include <thrust/random.h>
 //--------------------------------------------------------------------//
 #define FLT_MAX          3.402823466e+38F        // max value
 #define M_PI 3.14159265f
@@ -239,14 +239,14 @@ __device__ bool Intersect(CUDAMesh& mesh, float3& rayOrigin, float3& rayDir, flo
     return bHit;
 }
 //--------------------------------------------------------------------//
-__device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, float3& rayDir, bool bHitOnly, float3& hitpoint, float3& nml, float3& rgb, float& nHitDist)
+__device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, float3& rayDir, bool bHitOnly, bool bUseTextures, float3& hitpoint, float3& nml, float3& rgb, float& nHitDist)
 {
     float tmin = FLT_MAX;
     float u = 0;
     float v = 0;
     long nTexWidth = 0;
     long nTexHeight = 0;
-    DWORD* pTexData = 0;
+    float3* pTexData = 0;
      
     bool bHit = false;
     float dist = FLT_MAX;
@@ -263,16 +263,48 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
         bHit = true;
         u = ua;
         v = va;
+        nTexWidth = 0;
+        nTexHeight = 0;
+        pTexData = 0;
+        if (pMesh[h].pMaterial)
+        {
+            nTexWidth = pMesh[h].pMaterial->nWidth;
+            nTexHeight = pMesh[h].pMaterial->nHeight;
+            pTexData = pMesh[h].pMaterial->pTexData;
+        }
     }
     if (bHit)
     {
         if (bHitOnly) return true;
 
-        //Hard code the colour to grey - my CUDA implementqation doesn't support loading textures, although it wouldn't be hard to add.
-        ////Get surface properties (texture and uv...).
-        rgb.x = 0.5f;
-        rgb.y = 0.5f;
-        rgb.z = 0.5f;
+        //Get surface properties (texture and uv...).
+        /*if (v >= 1) { v = fmod(v, 1); }
+        if (u >= 1) { u = fmod(u, 1); }*/
+        while (u > 1) { u = u - 1; }
+        while (v > 1) { v = v - 1; }
+        while (u < 0) { u = u + 1; }
+        while (v < 0) { v = v + 1; }
+        long j = nTexWidth * v;
+        long h = nTexHeight * u;
+        if (!bUseTextures)
+        {
+            //gray/clay model
+            rgb.x = 0.5f;
+            rgb.y = 0.5f;
+            rgb.z = 0.5f;
+        }
+        else
+        {
+            //use the textures
+            rgb.x = 0.5f;
+            rgb.y = 0.5f;
+            rgb.z = 0.5f;
+            if (nTexWidth > 0 && pTexData) { 
+                rgb.x = (float)( pTexData[j * nTexWidth + h].x) / 255.0f;
+                rgb.y = (float)( pTexData[j * nTexWidth + h].y) / 255.0f;
+                rgb.z = (float)( pTexData[j * nTexWidth + h].z) / 255.0f;
+            }
+        }
     }
     return bHit;
 }
@@ -288,7 +320,8 @@ __device__ float3 uniformSampleHemisphere(const float& r1, const float& r2)
     return out;
 }
 //--------------------------------------------------------------------//
-__device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long nNumMeshs, float3& rayOrigin, float3& rayDir, const int& depth, unsigned short* Xi, bool bGlobalIllumination, float3 nSunPos, float3 nSunDir, float nSunIntensity)
+__device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long nNumMeshs, float3& rayOrigin, float3& rayDir, const int& depth, unsigned short* Xi, 
+    bool bGlobalIllumination, float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bUseTextures)
 { 
     float3 rgb = { 0, 0, 0 };
     float3 nml = { 0, 0, 0 };
@@ -300,7 +333,7 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
     float nHitDist = 0;
     float3 directLighting = { 0, 0, 0 };
     float3 indirectLighting = { 0, 0, 0 };
-    bHit = TraceRays(pVB, nNumMeshs, rayOrigin, rayDir, false, hitpoint, nml, rgb, nHitDist);
+    bHit = TraceRays(pVB, nNumMeshs, rayOrigin, rayDir, false, bUseTextures, hitpoint, nml, rgb, nHitDist);
 
     if (bHit)
     {
@@ -317,7 +350,7 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
         float3 sunhitpoint = { 0, 0, 0 };
         float3 hitrgb = { 0, 0, 0 };
         float3 rorigin = Vec3Add(hitPoint, Vec3MultScalar(hitNml, bias));
-        bHit = TraceRays(pVB, nNumMeshs, rorigin, sunDir, true, sunhitpoint, hitsunnml, hitrgb, nHitDist);
+        bHit = TraceRays(pVB, nNumMeshs, rorigin, sunDir, true, bUseTextures, sunhitpoint, hitsunnml, hitrgb, nHitDist);
         if (!bHit)
         { 
             float dp = Vec3Dot(hitNml, sunDir);
@@ -345,7 +378,7 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
                 };
                 float3 ray = Vec3Add(hitPoint, Vec3MultScalar(sampleWorld, bias));
                 float3 rd = Radiance(nNumSamples, s, pVB, nNumMeshs, ray, sampleWorld,
-                    depth + 1, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity);
+                    depth + 1, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity, bUseTextures);
                 indirectLighting.x = indirectLighting.x + r1 * rd.x / pdf;
                 indirectLighting.y = indirectLighting.y + r1 * rd.y / pdf;
                 indirectLighting.z = indirectLighting.z + r1 * rd.z / pdf;
@@ -396,7 +429,7 @@ void CCUDAPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc, thrust::host_vect
 }
 //--------------------------------------------------------------------//
 __global__ void PTKernel(volatile int* progress, float3* pOutout, long nClientWidth, long nClientHeight, long nNumSamples, long nDiv, float P0, float P1, float* pToLocal,
-    float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, CUDAMesh* pVB, long nNumMeshs)
+    float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, bool bUseTextures, CUDAMesh* pVB, long nNumMeshs)
 {
     int threadsPerBlock = blockDim.x * blockDim.y * blockDim.z;
     int threadPosInBlock = threadIdx.x +
@@ -436,9 +469,9 @@ __global__ void PTKernel(volatile int* progress, float3* pOutout, long nClientWi
         rayDir = Vec3Norm(rayDir);
         unsigned short Xi[3] = { 0, 0, (short)j * (short)j * (short)j }; // *** Moved outside for VS2012
         int depth = 0;
-        float3 rgb = Radiance(nNumSamples, s, pVB, nNumMeshs, rayOrigin, rayDir, depth, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity);
+        float3 rgb = Radiance(nNumSamples, s, pVB, nNumMeshs, rayOrigin, rayDir, depth, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity, bUseTextures);
 
-        atomicAdd((int*)progress, 1);
+        atomicAdd((int*)progress, 1);//increment the progress count that will be propagated back to the progress bar in the UI
 
         if (rgb.x > 0.1)
         {
@@ -447,35 +480,37 @@ __global__ void PTKernel(volatile int* progress, float3* pOutout, long nClientWi
         pOutout[tid].x = 255 * rgb.x;
         pOutout[tid].y = 255 * rgb.y;
         pOutout[tid].z = 255 * rgb.z;
-
-        //pOutout[tid].x = h * 255 / nImageWidth;//rgb.x;
-        //pOutout[tid].y = h * 255 / nImageWidth;//rgb.y;
-        //pOutout[tid].z = h * 255 / nImageWidth;//rgb.z;
     }
 }
 //--------------------------------------------------------------------//
 void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, long nClientWidth, long nClientHeight, long nNumSamples, long nDiv, float P0, float P1, float ToLocal[4][4],
-                           float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, CUDAMesh* pVB, long nNumMeshs)
+                           float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, bool bUseTextures, CUDAMesh* pVB, long nNumMeshs, CUDAMaterial* pMaterials, long nNumMaterials)
 {
     long nWidth = nClientWidth / nDiv;
     long nHeight = nClientHeight / nDiv;
     thrust::host_vector<CCUDAVertex*> vVertexBuffers;
     thrust::host_vector<CUDAMesh*> vMeshBuffers;
+    thrust::host_vector<float3*> vTextures;
+
+    thrust::host_vector<CUDAMaterial*> vHostMaterials;
+    thrust::host_vector<CUDAMaterial*> vDeviceMaterials;
+  
    // short* devHGTData = 0;
     float3* pCUDAOutputImage = 0;
     float* pToLocal = 0;
-    cudaError_t cudaStatus;
-    
+    cudaError_t cudaStatus;    
     CUDAMesh* pCUDAVB = 0;
+    CUDAMaterial* pCUDAMaterials = 0;
 
-     // Choose which GPU to run on, change this on a multi-GPU system.
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Choose which GPU to run on, change this on a multi-GPU system.
     cudaStatus = cudaSetDevice(0);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?");
         goto Error;
     }
- 
-    //cudaLimitStackSize()
+  
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     // Allocate GPU buffers for output image
     cudaStatus = cudaMalloc((void**)&pCUDAOutputImage, nWidth * nHeight * sizeof(float3));
     if (cudaStatus != cudaSuccess) {
@@ -483,13 +518,40 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
         goto Error;
     }
       
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //Copy materials/textures
+    cudaStatus = cudaMalloc((void**)&pCUDAMaterials, nNumMaterials * sizeof(CUDAMaterial));
+    if (cudaStatus == cudaSuccess) {
+        for (int h = 0; h < nNumMaterials; h++) {
+            vDeviceMaterials.push_back(&pCUDAMaterials[h]);//store the host and device version of this structure so we can map them later
+            vHostMaterials.push_back(&pMaterials[h]);
+            float3* pTexData = 0;
+            cudaStatus = cudaMalloc((void**)&pTexData, pMaterials[h].nWidth * pMaterials[h].nHeight * sizeof(float3));
+            if (cudaStatus != cudaSuccess) {
+                fprintf(stderr, "cudaMalloc failed!");
+                goto Error;
+            }
+            
+            cudaStatus = cudaMemcpy(&pCUDAMaterials[h].nWidth, &pMaterials[h].nWidth, sizeof(long), cudaMemcpyHostToDevice);
+            cudaStatus = cudaMemcpy(&pCUDAMaterials[h].nHeight, &pMaterials[h].nHeight, sizeof(long), cudaMemcpyHostToDevice);
+            cudaStatus = cudaMemcpy(pTexData, pMaterials[h].pTexData, pMaterials[h].nWidth * pMaterials[h].nHeight * sizeof(float3), cudaMemcpyHostToDevice);
+
+            cudaStatus = cudaMemcpy(&(pCUDAMaterials[h].pTexData), &pTexData, sizeof(float3*), cudaMemcpyHostToDevice);
+            //cudaStatus = cudaMemcpy(&(pDst->pMesh), &(pChildMesh), sizeof(CUDAMesh*), cudaMemcpyHostToDevice);//cleanup pointer
+       
+            vTextures.push_back(pTexData);//store in a vector so we can delete them later
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     // Allocate GPU buffers for 4 by 4 matrix
     cudaStatus = cudaMalloc((void**)&pToLocal, 16 * sizeof(float));
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMalloc failed!");
         goto Error;
     }
-    {//copy 4 by 4 matrix to device
+    {
+        //copy 4 by 4 matrix to device
         float* pTemp = new float[16];
         for (int w = 0; w < 4; w++) {
             for (int q = 0; q < 4; q++) {
@@ -499,6 +561,9 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
         cudaError_t cudaStatus = cudaMemcpy(pToLocal, pTemp, 16 * sizeof(float), cudaMemcpyHostToDevice);
         delete[] pTemp;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //Increase stack size otherwise the recursion will generate a 719 error
     cudaStatus = cudaThreadSetLimit(cudaLimitStackSize, 12000);
     // Allocate GPU buffers for mesh array
     cudaStatus = cudaMalloc((void**)&pCUDAVB, nNumMeshs * sizeof(CUDAMesh));
@@ -507,22 +572,28 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
         goto Error;
     }
     
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //Copy meshes
     cudaStatus = cudaMemset(pCUDAVB, 0, nNumMeshs * sizeof(CUDAMesh));
- 
     for (int h = 0; h < nNumMeshs; h++)
     {        
         CopyMesh(&pCUDAVB[h], &pVB[h], vVertexBuffers, vMeshBuffers);
+        //replace pointer to host material to pointer to the same material but on the device (that we computed a moment ago)
+        if (vHostMaterials.size() != vDeviceMaterials.size()) {
+            long nStop = 0;
+        }
+        for (int j = 0; j < vHostMaterials.size(); j++)
+        {
+            CUDAMaterial* pTest = vHostMaterials[j];
+            if (pVB[h].pMaterial == pTest)
+            {
+                cudaStatus = cudaMemcpy(&pCUDAVB[h].pMaterial, &vDeviceMaterials[j], sizeof(CUDAMaterial*), cudaMemcpyHostToDevice);
+                break;
+            }            
+        }
     }
      
-    // Launch a kernel on the GPU with one thread for each element.
-    cudaStatus = cudaDeviceSynchronize();
-   
-    long tx = 8;
-    long ty = 8;
-    dim3 block(nWidth / tx + 1, nHeight / ty + 1);
-    dim3 threads(tx, ty);
- 
-    
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     //Used to send progress from CUDA device back to host
     volatile int* d_progress, * h_progress;    
     cudaStatus = cudaSetDeviceFlags(cudaDeviceMapHost);
@@ -530,22 +601,36 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
     cudaStatus = cudaHostGetDevicePointer((int**)&d_progress, (int*)h_progress, 0);
     *h_progress = 0;
     *d_progress = 0;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Launch a kernel on the GPU with one thread for each element.
+    cudaStatus = cudaDeviceSynchronize();
+
+    long tx = 8;
+    long ty = 8;
+    dim3 block(nWidth / tx + 1, nHeight / ty + 1);
+    dim3 threads(tx, ty);
+
     cudaEvent_t start, stop;
     cudaEventCreate(&start); 
     cudaEventCreate(&stop);
     cudaEventRecord(start);
 
-    PTKernel << <block, threads >> > (d_progress, pCUDAOutputImage, nClientWidth, nClientHeight, nNumSamples, nDiv, P0, P1, pToLocal, nSunPos, nSunDir, nSunIntensity, bGlobalIllumination, pCUDAVB, nNumMeshs);
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //The Kernel
+    PTKernel << <block, threads >> > (d_progress, pCUDAOutputImage, nClientWidth, nClientHeight, nNumSamples, nDiv, P0, P1, pToLocal, nSunPos, nSunDir, nSunIntensity, bGlobalIllumination, bUseTextures, pCUDAVB, nNumMeshs);
 
     cudaEventRecord(stop);
   
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     // Check for any errors launching the kernel
     cudaStatus = cudaGetLastError();
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "HGTToNormalKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
         goto Error;
     }
-
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     //send progress back to caller
     if (pCallback)
     {
@@ -555,12 +640,15 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
         do {
             cudaEventQuery(stop);
             int nProgress1 = (*h_progress) * 100 / nWidth / nHeight;
-            if (nProgress1 > nProgress) {
+            if (nProgress1 > nProgress) 
+            {
                 nProgress = nProgress1;
                 pCallback->UpdateProgress( *h_progress, nWidth * nHeight);
             }
         } while (*h_progress < nWidth * nHeight - 2);
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
     // cudaDeviceSynchronize waits for the kernel to finish, and returns
     // any errors encountered during the launch.
     cudaStatus = cudaDeviceSynchronize();
@@ -569,7 +657,8 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
         goto Error;
     }
 
-    // Copy output vector from GPU buffer to host memory.
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Copy output image from GPU buffer to host memory.
     cudaStatus = cudaMemcpy(pOutputImage, pCUDAOutputImage, nWidth * nHeight * sizeof(float3), cudaMemcpyDeviceToHost);
     if (cudaStatus != cudaSuccess) {
         fprintf(stderr, "cudaMemcpy failed!");
@@ -577,6 +666,8 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
     }
 
 Error:
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    //Free Memory
     cudaFree(pCUDAOutputImage);
     for(auto& i : vVertexBuffers)
     {
@@ -586,6 +677,11 @@ Error:
     {
         cudaFree(i);
     }
+    for (auto& i : vTextures)
+    {
+        cudaFree(i);
+    }
+    cudaFree(pCUDAMaterials);
     cudaFree(pCUDAVB);
     cudaFree(pToLocal);
 }

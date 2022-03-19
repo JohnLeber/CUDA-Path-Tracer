@@ -69,14 +69,16 @@ struct VBVertex
 	DirectX::XMFLOAT2 tex;
 };
 //---------------------------------------------------------------//
+struct CUDAMaterial;
 struct CMat
 {
 	CString strName;
 	CString strPath;
-	DWORD* m_pData = 0;//pointer to RGBA bytes
+	DWORD* m_pTexData = 0;//pointer to RGBA bytes
 	LONG nWidth = 0;
 	LONG nHeight = 0;
 	ID3D11ShaderResourceView* mDiffuseMapSRV = 0;
+	CUDAMaterial* pCUDAMaterial = 0;
 }; 
 //-------------------------------------------------------------------------------//
 class CLight
@@ -121,7 +123,7 @@ struct CMesh
 	ID3D11Buffer* pVB = 0;
 	ID3D11Buffer* pIB = 0;
 	//texture
-	DWORD* m_pData = 0;//pointer to RGBA bytes
+	DWORD* m_pTexData = 0;//pointer to RGBA bytes
 	LONG nWidth = 0;
 	LONG nHeight = 0;
 
@@ -156,7 +158,8 @@ struct CGlobalData
 	}
 	std::vector<CMesh> m_vMeshes;
 	std::vector<CMat> m_vMaterials;	 
-	HWND m_hSideWnd = 0;//send progressm messages to this window
+	HWND m_hSideWnd = 0;//send progress messages to this window
+ 
 };
 //-------------------------------------------------------------------------------//
 extern CGlobalData* gGlobalData;

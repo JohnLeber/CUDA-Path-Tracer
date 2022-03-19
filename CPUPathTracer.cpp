@@ -275,7 +275,7 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 		//meshhit = m;
 		nTexWidth = m.nWidth;
 		nTexHeight = m.nHeight;
-		pTexData = m.m_pData;
+		pTexData = m.m_pTexData;
 	}
 	if (bHit)
 	{

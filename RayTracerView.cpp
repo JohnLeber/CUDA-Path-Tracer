@@ -72,10 +72,10 @@ CRayTracerView::~CRayTracerView()
 				i.mDiffuseMapSRV->Release();
 				i.mDiffuseMapSRV = 0;
 			}
-			if (i.m_pData)
+			if (i.m_pTexData)
 			{
-				delete[] i.m_pData;
-				i.m_pData = 0;
+				delete[] i.m_pTexData;
+				i.m_pTexData = 0;
 			}
 		}
 		delete gGlobalData;
@@ -721,12 +721,12 @@ void CRayTracerView::UpdateProgress(long nProgress, long nTotal)
 	::SendMessage(gGlobalData->m_hSideWnd, WM_PROGRESS_UPDATE, nProgress, nTotal);
 }
 //-----------------------------------------------------------------------//
-void CRayTracerView::CalcRayCUDA(long nNumSamples)
+void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures)
 {
 	if (nNumSamples < 1) nNumSamples = 1;
 	if (nNumSamples > 10000) nNumSamples = 10000;
 
-	float nDiv = 4.0f;
+	float nDiv =1.0f;
 	long nImageWidth = m_nClientWidth / nDiv;
 	long nImageHeight = m_nClientHeight / nDiv;
 	CCUDAPathTracer PT;
@@ -750,32 +750,87 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples)
 	float3 sunDir = { m_Sun.direction.x, m_Sun.direction.y, m_Sun.direction.z};
 	float sunIntensity = m_Sun.nIntensity;
 
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//Copy materials
+	long nNumMaterials = gGlobalData->m_vMaterials.size();
+	CUDAMaterial* pMaterials = new CUDAMaterial[nNumMaterials];
+	long nMatIndex = 0; 	
+	for (auto& m = gGlobalData->m_vMaterials.begin(); m != gGlobalData->m_vMaterials.end(); ++m)
+	{
+	 
+		if (m->nWidth != 0 && m->nHeight != 0) {
+			pMaterials[nMatIndex].pTexData = new float3[m->nWidth * m->nHeight];// i->m_pTexData
+			for (int h = 0; h < m->nWidth; h++)
+			{
+				for (int j = 0; j < m->nHeight; j++)
+				{
+					pMaterials[nMatIndex].pTexData[h * m->nWidth + j].x = (float)LOBYTE(LOWORD(m->m_pTexData[j * m->nWidth + h]));
+					pMaterials[nMatIndex].pTexData[h * m->nWidth + j].y = (float)HIBYTE(LOWORD(m->m_pTexData[j * m->nWidth + h]));
+					pMaterials[nMatIndex].pTexData[h * m->nWidth + j].z = (float)LOBYTE(HIWORD(m->m_pTexData[j * m->nWidth + h]));
+				}
+			}
+			pMaterials[nMatIndex].nWidth = m->nWidth;
+			pMaterials[nMatIndex].nHeight = m->nHeight;
+			m->pCUDAMaterial = &(pMaterials[nMatIndex]);
+		}
+		else
+		{
+			pMaterials[nMatIndex].pTexData = 0;
+			pMaterials[nMatIndex].nWidth = 0;
+			pMaterials[nMatIndex].nHeight = 0;
+		}
+		nMatIndex++;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//Copy meshes
 	long nNumMeshs = gGlobalData->m_vMeshes.size();
 	CUDAMesh* pVB = new CUDAMesh[nNumMeshs];	
 	int nMeshIndex = 0;
-	for (auto& i = gGlobalData->m_vMeshes.begin(); i != gGlobalData->m_vMeshes.end(); ++i)
-	{
-		CopyMesh(&pVB[nMeshIndex++], &(*i));
-		//if (nMeshIndex > 20) break;
+	for (auto& mesh = gGlobalData->m_vMeshes.begin(); mesh != gGlobalData->m_vMeshes.end(); ++mesh)
+	{ 
+		pVB[nMeshIndex].pMaterial = 0;
+		CopyMesh(&pVB[nMeshIndex], &(*mesh));
+
+		for (auto mt : gGlobalData->m_vMaterials) {
+			if (mt.strName == mesh->strMaterial) {
+				pVB[nMeshIndex].pMaterial = mt.pCUDAMaterial;
+				break;
+			}
+		}
+		nMeshIndex++;
 	}
 
+ 
+
+	//send a messaahe to the side bar to that it can disable controls unmtil the render is finished.
 	::SendMessage(gGlobalData->m_hSideWnd, WM_RENDER_START, 0, 0);
 
 	DWORD dwStart = GetTickCount();
-	PT.CalcRays(this, pOutput, m_nClientWidth, m_nClientHeight, nNumSamples, nDiv, P(0, 0), P(1, 1), toLocal.m, sunPos, sunDir, sunIntensity, m_bGlobalIllumination, pVB, nNumMeshs);
-	DWORD dwEnd = GetTickCount();
 
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//Execute raytracing
+	PT.CalcRays(this, pOutput, m_nClientWidth, m_nClientHeight, nNumSamples, nDiv, P(0, 0), P(1, 1), toLocal.m, sunPos, sunDir, sunIntensity, m_bGlobalIllumination, bUseTextures, pVB, nNumMeshs, pMaterials, nNumMaterials);
+	DWORD dwEnd = GetTickCount();
+	
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//Free memory
+	for (int h = 0; h < nNumMaterials; h++)
+	{ 
+		if (pMaterials[h].pTexData)  {
+			delete[] pMaterials[h].pTexData;
+		}
+	}
+	delete[] pMaterials;
 	for (int h = 0; h < nNumMeshs; h++)
 	{
 		FreeMesh(&pVB[h]);
 	}
 	delete[] pVB;
-	/*CString strTime;
-	strTime.Format(L"CUDA %d", dwEnd - dwStart);
-	AfxMessageBox(strTime);*/
  
 	pVB = 0;
-
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//Create Image of raytracing results
 	CImage* pImage = new CImage();
 	pImage->Create(nImageWidth, nImageHeight, 24, 0);
 	BYTE* pArray = (BYTE*)pImage->GetBits();
@@ -785,10 +840,6 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples)
 	int width = pImage->GetWidth();
 	for (int k = 0; k < width; k++) {
 		for (int j = 0; j < height; j++) {
-			if (pOutput[j * nImageWidth + k].x > 10)
-			{
-				long nStop = 0;
-			}
 			*(pArray + nPitch * j + k * nBitCount + 0) = pOutput[j * nImageWidth + k].x;//blue
 			*(pArray + nPitch * j + k * nBitCount + 1) = pOutput[j * nImageWidth + k].y;//green
 			*(pArray + nPitch * j + k * nBitCount + 2) = pOutput[j * nImageWidth + k].z;//red
@@ -799,11 +850,12 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples)
 	pImage->Save(L"_ImageCUDA.jpg");
 	
 	delete[] pOutput;
-
+	//////////////////////////////////////////////////////////////////////////////////////////
+	//Display image in popup window
 	CImageDlg dlg;
 	dlg.SetImage(pImage, (dwEnd - dwStart) / 1000);
 	dlg.DoModal();
-
+	//send a messaahe to the side bar to that it can re-enable controls
 	::SendMessage(gGlobalData->m_hSideWnd, WM_RENDER_END, 0, 0);
 
 	delete pImage;

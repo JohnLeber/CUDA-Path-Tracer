@@ -22,7 +22,7 @@ public:
 
 // Operations
 public:
-	void CalcRayCUDA(long nNumSamples);
+	void CalcRayCUDA(long nNumSamples, bool bUseTextures);
 	void CalcRayCPU(long nNumSamples, bool bUseTextures);
 	bool Init();
 
