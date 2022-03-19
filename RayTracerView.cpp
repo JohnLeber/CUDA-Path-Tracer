@@ -440,6 +440,7 @@ void CRayTracerView::UpdateScene(float dt)
 //-----------------------------------------------------------------------//
 void CRayTracerView::Render(float fps, float mspf)
 {
+	if (gGlobalData->m_bRendering) return;
 	if (Effects::BasicFX == 0) return;
 
 	if (abs(fps) < 0.00001) fps = m_fps;
@@ -719,6 +720,15 @@ void CRayTracerView::CopyMesh(CUDAMesh* pVB, CMesh* pSrc)
 void CRayTracerView::UpdateProgress(long nProgress, long nTotal)
 {
 	::SendMessage(gGlobalData->m_hSideWnd, WM_PROGRESS_UPDATE, nProgress, nTotal);
+	//CStdioFile f;
+	//CString strFile = L"D:\\____RenderLog\\_progress.txt";
+	//if(f.Open(strFile, CFile::modeCreate | CFile::modeWrite | CFile::typeText))
+	//{
+	//	CString str;
+	//	str.Format(L"%d of %d", nProgress, nTotal);
+	//	f.WriteString(str);
+	//	f.Close();
+	//}
 }
 //-----------------------------------------------------------------------//
 void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination)
@@ -801,7 +811,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 	}
 
  
-
+	gGlobalData->m_bRendering = true;
 	//send a messaahe to the side bar to that it can disable controls unmtil the render is finished.
 	::SendMessage(gGlobalData->m_hSideWnd, WM_RENDER_START, 0, 0);
 
@@ -811,7 +821,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 	//Execute raytracing
 	PT.CalcRays(this, pOutput, m_nClientWidth, m_nClientHeight, nNumSamples, nDiv, P(0, 0), P(1, 1), toLocal.m, sunPos, sunDir, sunIntensity, bGlobalIllumination, bUseTextures, pVB, nNumMeshs, pMaterials, nNumMaterials);
 	DWORD dwEnd = GetTickCount();
-	
+	gGlobalData->m_bRendering = false;
 	//////////////////////////////////////////////////////////////////////////////////////////
 	//Free memory
 	for (int h = 0; h < nNumMaterials; h++)
@@ -889,9 +899,11 @@ void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures, long nDiv, 
 	DWORD dwStart = GetTickCount();
  
 	::SendMessage(gGlobalData->m_hSideWnd, WM_RENDER_START, 0, 0);
+
+	gGlobalData->m_bRendering = true;
 	CCPUPathTracer PT;
 	PT.CalcRays(this, pImageData, m_nClientWidth, m_nClientHeight, nDiv, nNumSamples, P(0, 0), P(1, 1), toLocal, m_Sun, bGlobalIllumination, bUseTextures);
-
+	gGlobalData->m_bRendering = false;
   
 	/*if (h == 0 && j == 0)
 	{

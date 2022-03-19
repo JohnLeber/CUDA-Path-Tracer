@@ -146,6 +146,7 @@ int CRayTracerApp::ExitInstance()
 BOOL CRayTracerApp::OnIdle(LONG lCount)
 {
 	CWnd* mainFrame = AfxGetMainWnd();
+	if (gGlobalData->m_bRendering) return TRUE;
 	m_Timer.Tick();
 	((CMainFrame*)mainFrame)->Render();
 	return TRUE;// CWinApp::OnIdle(lCount);

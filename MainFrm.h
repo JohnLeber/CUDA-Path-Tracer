@@ -18,14 +18,10 @@ protected: // create from serialization only
 	bool DoesDirExist(CString str);
 
 	//dxgi
-	//IDXGIDevice* m_pDXGIDevice = 0;
-	//IDXGIAdapter* m_pDXGIAdapter = 0;
 	IDXGIFactory* m_pDXGIFactory = 0;
-	//IDXGISwapChain* m_pSwapChain = 0;
-	//d3d
-	ID3D11Debug* m_pDebug = 0;
- 
 
+	//d3d
+	ID3D11Debug* m_pDebug = 0;  
 	ID3D11Device* m_pD3DDevice = 0;
 	ID3D11DeviceContext* m_pD3DImmediateContext = 0;
 	ID3D11Texture2D* m_pDepthStencilBuffer = 0;

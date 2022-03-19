@@ -85,6 +85,7 @@ CMainFrame::~CMainFrame()
 		m_pDXGIFactory->Release();
 	}
 
+
 	if (m_pDebug) {
 	//	m_pDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 		m_pDebug->Release();
@@ -514,12 +515,14 @@ bool CMainFrame::InitD3D()
 		AfxMessageBox(L"D3D11CreateDevice Failed.");
 		return false;
 	}
+#if defined(DEBUG) || defined(_DEBUG)  
 	hr = m_pD3DDevice->QueryInterface(__uuidof(ID3D11Debug), (void**)&m_pDebug);
 	if (featureLevel != D3D_FEATURE_LEVEL_11_0)
 	{
 		AfxMessageBox(L"Direct3D Feature Level 11 unsupported.");
 		return false;
 	}
+#endif
 
 	hr = m_pD3DDevice->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m_4xMsaaQuality);
 	ATLASSERT(m_4xMsaaQuality > 0);

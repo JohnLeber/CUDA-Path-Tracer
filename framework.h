@@ -156,6 +156,7 @@ struct CGlobalData
 	{
 
 	}
+	bool m_bRendering = false;
 	std::vector<CMesh> m_vMeshes;
 	std::vector<CMat> m_vMaterials;	 
 	HWND m_hSideWnd = 0;//send progress messages to this window
