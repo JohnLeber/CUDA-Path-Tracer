@@ -8,7 +8,7 @@ The goal was to write a simple test framework that would allow me to load a mode
 
 Default Sponza model (128 samples)
 
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png)
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Final2.png)
 
 Using Crytek's Sponza model (128 samples):
 
