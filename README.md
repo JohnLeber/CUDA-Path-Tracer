@@ -19,11 +19,11 @@ Experimenting with Colour:
 
 No lighting:
 
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Screenshot.png)
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png)
 
 Direct Light only:
 
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct_2.png)
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png)
 
 Direct Light and Global Illumination:
 
