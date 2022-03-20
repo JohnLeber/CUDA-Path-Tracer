@@ -10,7 +10,7 @@ Default Sponza model (128 samples)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png)
 
-Using Crytek's Sponza model:
+Using Crytek's Sponza model (128 samples):
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_grey_128.png)
 
