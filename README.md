@@ -24,7 +24,7 @@ Experimenting with Colour:
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N128_Upper.png)
 
 
-Screenshot
+Screenshot:
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Screenshot.png)
 
