@@ -11,7 +11,7 @@ Direct Light only:
 
 Direct Light and Global Illumination (2 bounces):
 
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global_2.png) 
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_grey_128.png)
 
