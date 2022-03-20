@@ -3,6 +3,13 @@
 A DirectX 11/CUDA/MFC application that implements a simple ray/path tracer on polygon meshes. The application loads a 3D model (Sponza) and allows the camera to be positioned using the mouse and WASD keys. There is a single light source that can also be positioned. There are two implementations of the algorithm, the first using the CPU and OpenMP, and the second using CUDA.
 
 
+No lighting (textures only)         | Direct light only         |  Diret light and global illumination
+:-------------------------:|:-------------------------:|:-------------------------:
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
+
+
+
+
 Using Crytek's Sponza model:
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_grey_128.png)
@@ -17,17 +24,6 @@ Experimenting with Colour:
 
 
 
-No lighting:
-
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png)
-
-Direct Light only:
-
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png)
-
-Direct Light and Global Illumination:
-
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
 
 
 ## Notes
