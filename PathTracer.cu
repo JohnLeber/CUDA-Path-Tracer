@@ -300,9 +300,13 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
             rgb.y = 0.5f;
             rgb.z = 0.5f;
             if (nTexWidth > 0 && pTexData) { 
-                rgb.x = (float)( pTexData[j * nTexWidth + h].x) / 255.0f;
-                rgb.y = (float)( pTexData[j * nTexWidth + h].y) / 255.0f;
-                rgb.z = (float)( pTexData[j * nTexWidth + h].z) / 255.0f;
+                long nIndex = h * nTexWidth + j;
+                if (nIndex >= 0 && nIndex < nTexWidth * nTexHeight)
+                {
+                    rgb.x = (float)(pTexData[nIndex].x) / 255.0f;
+                    rgb.y = (float)(pTexData[nIndex].y) / 255.0f;
+                    rgb.z = (float)(pTexData[nIndex].z) / 255.0f;
+                }
             }
         }
     }
@@ -386,9 +390,9 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
             indirectLighting = Vec3DivScalar(indirectLighting, N);
         }
 
-        rgb.x = (directLighting.x / M_PI + 2 * indirectLighting.x) * rgb.x;
-        rgb.y = (directLighting.y / M_PI + 2 * indirectLighting.y) * rgb.y;
-        rgb.z = (directLighting.z / M_PI + 2 * indirectLighting.z) * rgb.z;
+        rgb.x = (directLighting.x / M_PI / 2 + 2 * indirectLighting.x) * rgb.x;
+        rgb.y = (directLighting.y / M_PI / 2 + 2 * indirectLighting.y) * rgb.y;
+        rgb.z = (directLighting.z / M_PI / 2 + 2 * indirectLighting.z) * rgb.z;
     } 
     return rgb;
 }

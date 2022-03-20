@@ -85,7 +85,7 @@ void CMesh::RecomputeBB()
 	boundingbox.Extents.z = (bbmax.z - bbmin.z) / 2;
 }
 //-------------------------------------------------------------//
-void CMesh::ComputeSubmeshes(long& nDepth)
+void CMesh::ComputeSubmeshes(long nDepth)
 {
 	m_pMesh = new CMesh[8];
 	float nExtentX = boundingbox.Extents.x / 2;
@@ -160,7 +160,7 @@ void CMesh::ComputeSubmeshes(long& nDepth)
 	{
 		if (m_pMesh[h].nNumTriangles >= 200)
 		{
-			m_pMesh[h].ComputeSubmeshes(nDepth);
+			m_pMesh[h].ComputeSubmeshes(nDepth + 1);
 		}
 	}
 }

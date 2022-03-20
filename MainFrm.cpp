@@ -206,8 +206,11 @@ bool CMainFrame::Initialize()
 		}
 
 	}
-
+#ifdef CRYTEKSPONZA
+	CString strPath = strMeshPath + L"Sponzacrytek\\sponza.mesh";
+#else
 	CString strPath = strMeshPath + L"Sponza\\sponza.mesh";
+#endif
 	TObjMesh objMesh;
 	LoadObj(strPath, &objMesh);
 	 

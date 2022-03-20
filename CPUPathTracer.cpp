@@ -299,7 +299,7 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 		else
 		{//use the textures
 			if (nTexWidth > 0) {
-				DWORD dwPixel = pTexData[j * nTexWidth + h];
+				DWORD dwPixel = pTexData[h * nTexWidth + j];
 				rgb.x = (float)(LOBYTE(LOWORD(dwPixel))) / 255.0f;
 				rgb.y = (float)(HIBYTE(LOWORD(dwPixel))) / 255.0f;
 				rgb.z = (float)(LOBYTE(HIWORD(dwPixel))) / 255.0f;
@@ -346,7 +346,7 @@ DirectX::XMFLOAT3 CCPUPathTracer::Radiance(CLight& sun, bool bGlobalIllumination
 		{
 			DirectX::XMFLOAT3 dp = { 0,0,0 };
 			//the sun is a distance light, so lets not divide by sqrt(r*r) and 4/pi/r2 etc
-			XMStoreFloat3(&dp, DirectX::XMVector3Dot(hitNml, sunDir));
+			XMStoreFloat3(&dp, DirectX::XMVector3Dot(hitNml, -sunDir));
 			directLighting.x = sun.nIntensity * max(0.0f, dp.x);
 			directLighting.y = sun.nIntensity * max(0.0f, dp.y);
 			directLighting.z = sun.nIntensity * max(0.0f, dp.z);
@@ -387,9 +387,9 @@ DirectX::XMFLOAT3 CCPUPathTracer::Radiance(CLight& sun, bool bGlobalIllumination
 			indirectLighting.y = indirectLighting.y / N;
 			indirectLighting.z = indirectLighting.z / N;
 		}
-		rgb.x = (directLighting.x / M_PI + 2 * indirectLighting.x) * rgb.x;// *isect.hitObject->albedo;
-		rgb.y = (directLighting.y / M_PI + 2 * indirectLighting.y) * rgb.y;// *isect.hitObject->albedo;
-		rgb.z = (directLighting.z / M_PI + 2 * indirectLighting.z) * rgb.z;// *isect.hitObject->albedo;
+		rgb.x = (directLighting.x / M_PI / 2 + 2 * indirectLighting.x) * rgb.x;// *isect.hitObject->albedo;
+		rgb.y = (directLighting.y / M_PI / 2 + 2 * indirectLighting.y) * rgb.y;// *isect.hitObject->albedo;
+		rgb.z = (directLighting.z / M_PI / 2 + 2 * indirectLighting.z) * rgb.z;// *isect.hitObject->albedo;
 	}
 	return rgb;
 }

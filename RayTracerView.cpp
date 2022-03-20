@@ -204,15 +204,23 @@ void CRayTracerView::Init(IDWriteTextFormat* pTextFormat, ID2D1Factory* pD2DFact
 
 	m_Camera.Pitch(0);
 	m_Camera.SetLens(0.25f * MathHelper::Pi, GetAspectRatio(), m_nNearZ, m_nFarZ);
+
+#ifdef CRYTEKSPONZA
 	m_Camera.SetPosition(-1280, 138, -50);
 	m_Camera.RotateY(3.1416 / 2);
+#else
+	m_Camera.SetPosition(10, 5, 0);
+	m_Camera.RotateY(- 2* 3.1416 / 4);
+#endif
+	
 
 	/*float nPos = m_SunPos.GetPos() / 2000.0f;
 	float nDist = 1;
 	float nAngle = M_PI * nPos;
 	DirectX::XMFLOAT3 sunpos(nDist * cos(nAngle), nDist * sin(nAngle), 0);*/
-
-	SetSunPos(M_PI / 2);//noon 
+	float nPos = 900.0f / 2000.0f;
+	float nAngle = M_PI * nPos;
+	SetSunPos(nAngle);//noon 
 }
 //-----------------------------------------------------------------------//
 float CRayTracerView::GetAspectRatio()
@@ -421,7 +429,11 @@ void CRayTracerView::UpdateScene(float dt)
 	{
 		if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
 		{
+#ifdef CRYTEKSPONZA
 			nScale = 1200;
+#else
+			nScale = 120;
+#endif
 		}
 		if (GetAsyncKeyState('W') & 0x8000)
 			m_Camera.Walk(1.0f * dt * nScale);
@@ -773,9 +785,9 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 			{
 				for (int j = 0; j < m->nHeight; j++)
 				{
-					pMaterials[nMatIndex].pTexData[h * m->nWidth + j].x = (float)LOBYTE(LOWORD(m->m_pTexData[j * m->nWidth + h]));
-					pMaterials[nMatIndex].pTexData[h * m->nWidth + j].y = (float)HIBYTE(LOWORD(m->m_pTexData[j * m->nWidth + h]));
-					pMaterials[nMatIndex].pTexData[h * m->nWidth + j].z = (float)LOBYTE(HIWORD(m->m_pTexData[j * m->nWidth + h]));
+					pMaterials[nMatIndex].pTexData[j * m->nWidth + h].x = (float)LOBYTE(LOWORD(m->m_pTexData[j * m->nWidth + h]));
+					pMaterials[nMatIndex].pTexData[j * m->nWidth + h].y = (float)HIBYTE(LOWORD(m->m_pTexData[j * m->nWidth + h]));
+					pMaterials[nMatIndex].pTexData[j * m->nWidth + h].z = (float)LOBYTE(HIWORD(m->m_pTexData[j * m->nWidth + h]));
 				}
 			}
 			pMaterials[nMatIndex].nWidth = m->nWidth;
@@ -968,7 +980,11 @@ void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures, long nDiv, 
 void CRayTracerView::SetSunPos(float nAngle)
 {
 	//0 = sunrise, PI / 2 = noon, PI = sunset
+#ifdef CRYTEKSPONZA
 	float nDist = 2000;
+#else
+	float nDist = 80;
+#endif
 	DirectX::XMFLOAT3 sunpos(0, nDist * sin(nAngle), nDist * cos(nAngle));
  
 	if (mSunVB) mSunVB->Release();
@@ -980,7 +996,11 @@ void CRayTracerView::SetSunPos(float nAngle)
 	CMesh mesh;
 	GeometryGenerator G;
 	GeometryGenerator::MeshData meshData;
+#ifdef CRYTEKSPONZA
 	G.CreateCylinder(200, 200, 50, 18, 1, meshData);
+#else
+	G.CreateCylinder(20, 20, 5, 18, 1, meshData);
+#endif
 	long nNumVertices = meshData.Vertices.size();
 	long nNumTris = meshData.Indices.size() / 3;
 

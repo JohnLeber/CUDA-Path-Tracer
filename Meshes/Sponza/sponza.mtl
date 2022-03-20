@@ -1,234 +1,197 @@
-# MTL written from D:\Sponza\Modo\sponza.obj
-newmtl Material__042
-Kd 0.588 0.588 0.588
-Ns 10
+# MTL written from C:\Users\user\source\repos\RayTracer\Meshes\Sponza\sponza.obj
+newmtl sp_00_luk_mal1
+Kd 0.745098 0.709804 0.67451
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\background.png
-map_Ka D:\Sponza\textures\background.png
-map_Bump D:\Sponza\textures\background_ddn.png
-newmtl Material__25
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_ST_KP.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_ST_KP.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_St_kp-bump.jpg
+newmtl sp_00_luk_mali
+Kd 0.745098 0.709804 0.67451
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\lion.png
-map_Ka D:\Sponza\textures\lion.png
-map_Bump D:\Sponza\textures\lion_ddn.png
-newmtl Material__47
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\SP_LUK.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\SP_LUK.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\sp_luk-bump.JPG
+newmtl sp_00_pod
+Kd 0.627451 0.572549 0.560784
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-newmtl VasePlant
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN-bump.jpg
+newmtl sp_00_prozor
+Kd 1 1 1
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\vase_plant.png
-map_Ka D:\Sponza\textures\vase_plant.png
-map_Bump D:\Sponza\textures\vase_plant_NRM.png
-newmtl arch
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\PROZOR1.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\PROZOR1.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\PROZOR1.JPG
+newmtl sp_00_stup
+Kd 0.737255 0.709804 0.670588
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_arch_diff.png
-map_Ka D:\Sponza\textures\sponza_arch_diff.png
-newmtl bricks
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB-bump.jpg
+newmtl sp_00_svod
+Kd 0.941177 0.866667 0.737255
+Ns 1
 d 1
 illum 2
-Ka 0.588 0.588 0.588
-Ks 0 0 0
-map_Kd D:\Sponza\textures\spnza_bricks_a_diff.png
-map_Ka D:\Sponza\textures\spnza_bricks_a_diff.png
-map_Bump D:\Sponza\textures\spnza_bricks_a_diff.png
-newmtl ceiling
-Kd 0.588 0.588 0.588
-Ns 10
+Ka 0.145098 0.145098 0.145098
+Ks 0.034039 0.032314 0.029333
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN-stup.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN-stup.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN-stup.jpg
+newmtl sp_00_vrata_kock
+Kd 0.784314 0.784314 0.784314
+Ns 20
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_ceiling_a_diff.png
-map_Ka D:\Sponza\textures\sponza_ceiling_a_diff.png
-newmtl chain
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\VRATA_KO.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\VRATA_KO.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\VRATA_KO.JPG
+newmtl sp_00_vrata_krug
+Kd 0.784314 0.784314 0.784314
+Ns 20
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\chain_texture.png
-map_Ka D:\Sponza\textures\chain_texture.png
-map_Bump D:\Sponza\textures\chain_texture_ddn.png
-newmtl column_a
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\VRATA_KR.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\VRATA_KR.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\VRATA_KR.JPG
+newmtl sp_00_zid
+Kd 0.627451 0.572549 0.560784
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_column_a_diff.png
-map_Ka D:\Sponza\textures\sponza_column_a_diff.png
-map_Bump D:\Sponza\textures\sponza_column_a_ddn.png
-newmtl column_b
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN-bump.jpg
+newmtl sp_01_luk_a
+Kd 0.745098 0.709804 0.67451
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_column_b_diff.png
-map_Ka D:\Sponza\textures\sponza_column_b_diff.png
-map_Bump D:\Sponza\textures\sponza_column_b_ddn.png
-newmtl column_c
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\SP_LUK.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\SP_LUK.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\sp_luk-bump.JPG
+newmtl sp_01_stub
+Kd 0.737255 0.709804 0.670588
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_column_c_diff.png
-map_Ka D:\Sponza\textures\sponza_column_c_diff.png
-map_Bump D:\Sponza\textures\sponza_column_c_ddn.png
-newmtl details
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB-bump.jpg
+newmtl sp_01_stub_baza
+Kd 0.8 0.784314 0.74902
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_details_diff.png
-map_Ka D:\Sponza\textures\sponza_details_diff.png
-newmtl fabric_a
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_S_BA.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_S_BA.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_S_BA.JPG
+newmtl sp_01_stub_baza_
+Kd 0.784314 0.784314 0.784314
+Ns 20
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_fabric_diff.png
-map_Ka D:\Sponza\textures\sponza_fabric_diff.png
-newmtl fabric_c
-Kd 0.588 0.588 0.588
-Ns 10
+newmtl sp_01_stub_kut
+Kd 0.737255 0.709804 0.670588
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_curtain_diff.png
-map_Ka D:\Sponza\textures\sponza_curtain_diff.png
-newmtl fabric_d
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_STUB-bump.jpg
+newmtl sp_01_stup
+Kd 0.827451 0.8 0.768628
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_fabric_blue_diff.png
-map_Ka D:\Sponza\textures\sponza_fabric_blue_diff.png
-newmtl fabric_e
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\X01_ST.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\X01_ST.JPG
+newmtl sp_01_stup_baza
+Kd 0.8 0.784314 0.74902
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_fabric_green_diff.png
-map_Ka D:\Sponza\textures\sponza_fabric_green_diff.png
-newmtl fabric_f
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_S_BA.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_S_BA.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\01_S_BA.JPG
+newmtl sp_02_reljef
+Kd 0.529412 0.498039 0.490196
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_curtain_green_diff.png
-map_Ka D:\Sponza\textures\sponza_curtain_green_diff.png
-newmtl fabric_g
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\RELJEF.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\RELJEF.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\reljef-bump.jpg
+newmtl sp_svod_kapitel
+Kd 0.713726 0.705882 0.658824
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_curtain_blue_diff.png
-map_Ka D:\Sponza\textures\sponza_curtain_blue_diff.png
-newmtl flagpole
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\00_SKAP.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\00_SKAP.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\00_SKAP.JPG
+newmtl sp_vijenac
+Kd 0.713726 0.705882 0.658824
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_flagpole_diff.png
-map_Ka D:\Sponza\textures\sponza_flagpole_diff.png
-newmtl floor
-Kd 0.588 0.588 0.588
-Ns 10
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\00_SKAP.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\00_SKAP.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\00_SKAP.JPG
+newmtl sp_zid_vani
+Kd 0.627451 0.572549 0.560784
+Ns 50
 d 1
 illum 2
-Ka 0.588 0.588 0.588
+Ka 0 0 0
 Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_floor_a_diff.png
-map_Ka D:\Sponza\textures\sponza_floor_a_diff.png
-newmtl leaf
-Kd 0.588 0.588 0.588
-Ns 10
-d 1
-illum 2
-Ka 0.588 0.588 0.588
-Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_thorn_diff.png
-map_Ka D:\Sponza\textures\sponza_thorn_diff.png
-map_Bump D:\Sponza\textures\sponza_thorn_ddn.png
-newmtl roof
-Kd 0.588 0.588 0.588
-Ns 10
-d 1
-illum 2
-Ka 0.588 0.588 0.588
-Ks 0 0 0
-map_Kd D:\Sponza\textures\sponza_roof_diff.png
-map_Ka D:\Sponza\textures\sponza_roof_diff.png
-newmtl vase
-Kd 0.588 0.588 0.588
-Ns 10
-d 1
-illum 2
-Ka 0.588 0.588 0.588
-Ks 0 0 0
-map_Kd D:\Sponza\textures\vase_dif.png
-map_Ka D:\Sponza\textures\vase_dif.png
-newmtl vase_hanging
-Kd 0.588 0.588 0.588
-Ns 10
-d 1
-illum 2
-Ka 0.588 0.588 0.588
-Ks 0 0 0
-map_Kd D:\Sponza\textures\vase_hanging.png
-map_Ka D:\Sponza\textures\vase_hanging.png
-newmtl vase_round
-Kd 0.588 0.588 0.588
-Ns 10
-d 1
-illum 2
-Ka 0.588 0.588 0.588
-Ks 0 0 0
-map_Kd D:\Sponza\textures\vase_round.png
-map_Ka D:\Sponza\textures\vase_round.png
-map_Bump D:\Sponza\textures\vase_round_ddn.png
+map_Kd C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN.JPG
+map_Ka C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN.JPG
+map_Bump C:\Users\user\source\repos\RayTracer\Meshes\Sponza\KAMEN-bump.jpg

@@ -59,6 +59,8 @@
 #include <map>
 
 
+//#define CRYTEKSPONZA
+
 const UINT WM_PROGRESS_UPDATE = WM_USER + 1000;
 const UINT WM_RENDER_START = WM_USER + 1001;
 const UINT WM_RENDER_END = WM_USER + 1002;
@@ -68,6 +70,7 @@ struct VBVertex
 	DirectX::XMFLOAT3 pos, normal;
 	DirectX::XMFLOAT2 tex;
 };
+
 //---------------------------------------------------------------//
 struct CUDAMaterial;
 struct CMat
@@ -101,7 +104,7 @@ struct CMesh
 	float nIntensity = 1.0f; 
 
 	long nMaxDepth = 0;//number of octree submeshes
-	void ComputeSubmeshes(long& nDepth);
+	void ComputeSubmeshes(long nDepth);
 	void RecomputeBB();
 	void Count(long& nTris, long& nMaxDepth);
 	void Clear();
