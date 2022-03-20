@@ -4,14 +4,8 @@ A DirectX 11/CUDA/MFC application that implements a simple ray/path tracer on po
 
 The goal was to write a simple test framework that would allow me to load a model, position a camera and light source and experiment with basic ray/path tracing algorithms. Having now done this I would perhaps implement it differently if I could start agaon (with the knowledge I now have). As such, a better source to learn about how to write a ray tracer (properly) in CUDA can be found [here](https://developer.nvidia.com/blog/accelerated-ray-tracing-cuda/).
 
-Sample output images:
 
-No lighting (textures only)         | Direct light only         |  Direct light and global illumination
-:-------------------------:|:-------------------------:|:-------------------------:
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
-
-
-
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global.png)
 
 Using Crytek's Sponza model:
 
@@ -35,6 +29,10 @@ Experimenting with Colour:
 5) Set the number of samples to something low (e.g. 8) for a low quality quick render, or to a higher value (e.g. 128) for a better quality render (but will take several hours)
 6) Select CPU or CUDA if a CUDA device is present (see notes).
 7) Press the "Start Render" button and the progress bar should indicate progress. There is no cancel button other than CTRL-ALT-DEL...
+
+No lighting (textures only)         | Direct light only         |  Direct light and global illumination
+:-------------------------:|:-------------------------:|:-------------------------:
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Screenshot.png)
 
