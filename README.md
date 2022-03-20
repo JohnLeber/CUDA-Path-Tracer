@@ -4,6 +4,9 @@ A DirectX 11/CUDA/MFC application that implements a simple ray/path tracer on po
 
 The goal was to write a simple test framework that would allow me to load a model, position a camera and light source and experiment with basic ray/path tracing algorithms. Having now done this I would perhaps implement it differently if I could start agaon (with the knowledge I now have). As such, a better source to learn about how to write a ray tracer (properly) in CUDA can be found [here](https://developer.nvidia.com/blog/accelerated-ray-tracing-cuda/).
 
+## Sample images
+
+Default Sponza model (128 samples)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global.png)
 
