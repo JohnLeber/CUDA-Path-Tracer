@@ -2,7 +2,7 @@
 
 A DirectX 11/CUDA/MFC application that implements a simple ray/path tracer on polygon meshes. The application loads a 3D model (Sponza) and allows the camera to be positioned using the mouse and WASD keys. There is a single light source that can also be positioned. There are two implementations of the algorithm, the first using the CPU and OpenMP, and the second using CUDA.
 
-The goal was to write a simple test framework that would allow me to load a model, position a camera and light source and experiment with basic path/tracing algorthims. Having now done this I would perhaps implement differently if I could start agaon (with the knowldge I now have). As such, a better source to learn about how to write a ray tracer in CUDA can be found [here](https://developer.nvidia.com/blog/accelerated-ray-tracing-cuda/).
+The goal was to write a simple test framework that would allow me to load a model, position a camera and light source and experiment with basic ray/path tracing algorithms. Having now done this I would perhaps implement it differently if I could start agaon (with the knowledge I now have). As such, a better source to learn about how to write a ray tracer (properly) in CUDA can be found [here](https://developer.nvidia.com/blog/accelerated-ray-tracing-cuda/).
 
 Sample output images:
 
