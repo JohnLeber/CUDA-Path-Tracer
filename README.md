@@ -27,6 +27,7 @@ Experimenting with Colour:
 7) To compile the application, I used CUDA 11.6 and Visual studio 2019 community edition - be sure to install the MFC desktop module.
 8) I changed the extension of the Sponza OBJ file to .mesh to avoid gitignore filtering out OBJ files. There was probably a better way to do this but...
 9) To use the Crytek Sponza model define CRYTEKSPONZA in framework.h;
+10) For indirect lighting I only do two bounces. There are too many polygons in the models to do anymore than this at the moment.
 ## Credits
 
 1) The default Sponza model was creatd by Marko Dabrovic can can be downloaded from [here](http://hdri.cgtechniques.com/~sponza/files/). 
