@@ -2,6 +2,7 @@
 
 A DirectX 11/CUDA/MFC application that implements a simple ray/path tracer on polygon meshes. The application loads a 3D model (Sponza) and allows the camera to be positioned using the mouse and WASD keys. There is a single light source that can also be positioned. There are two implementations of the algorithm, the first using the CPU and OpenMP, and the second using CUDA.
 
+Sample output images:
 
 No lighting (textures only)         | Direct light only         |  Direct light and global illumination
 :-------------------------:|:-------------------------:|:-------------------------:
