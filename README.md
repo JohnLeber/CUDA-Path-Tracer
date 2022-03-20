@@ -22,6 +22,9 @@ Experimenting with Colour:
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N128_Upper.png)
 
+No lighting (textures only)         | Direct light only         |  Direct light and global illumination
+:-------------------------:|:-------------------------:|:-------------------------:
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
 
 ## Instructions
 
@@ -32,10 +35,6 @@ Experimenting with Colour:
 5) Set the number of samples to something low (e.g. 8) for a low quality quick render, or to a higher value (e.g. 128) for a better quality render (but will take several hours)
 6) Select CPU or CUDA if a CUDA device is present (see notes).
 7) Press the "Start Render" button and the progress bar should indicate progress. There is no cancel button other than CTRL-ALT-DEL...
-
-No lighting (textures only)         | Direct light only         |  Direct light and global illumination
-:-------------------------:|:-------------------------:|:-------------------------:
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Screenshot.png)
 
