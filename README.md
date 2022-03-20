@@ -17,11 +17,15 @@ Experimenting with Colour:
 
 
 
+No lighting:
+
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Screenshot.png)
+
 Direct Light only:
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct_2.png)
 
-Direct Light and Global Illumination (2 bounces):
+Direct Light and Global Illumination:
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
 
