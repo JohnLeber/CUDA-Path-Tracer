@@ -43,7 +43,7 @@ Screenshot
 10) For indirect lighting I only do two bounces. There are too many polygons in the models to do anymore than this at the moment.
 ## Credits
 
-1) The default Sponza model was creatd by Marko Dabrovic can can be downloaded from [here](http://hdri.cgtechniques.com/~sponza/files/). 
+1) The default Sponza model was created by Marko Dabrovic and can be downloaded from [here](http://hdri.cgtechniques.com/~sponza/files/). 
 2) The other Sponza model is from [Crytek](https://www.crytek.com/cryengine).
 3) The code I used to load the wavefront OBJ files I got from [here](http://code-section.com/blog/dx9-obj-loader).
 4) Much of the boilerplate code used for DirectX 11 are based on samples Frank Luna's [DirectX 11 book](https://www.amazon.com/Introduction-3D-Game-Programming-DirectX/dp/1936420228).
