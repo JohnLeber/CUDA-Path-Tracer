@@ -5,6 +5,11 @@ A DirectX 11/CUDA/MFC application that implements a simple ray/path tracer on po
 
 Using Crytek's Sponza model:
 
+Direct Light only:
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct_2.png)
+Direct Light and Global Illumination (2 bounses)
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global_2.png) 
+
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_grey_128.png)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N128_Upper2.png)
