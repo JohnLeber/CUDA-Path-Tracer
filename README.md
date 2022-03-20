@@ -24,7 +24,15 @@ Experimenting with Colour:
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N128_Upper.png)
 
 
-Screenshot:
+## Instructions
+
+1) Move the camera using the WASD keys and mouse (with left button down) to position the camera in the correct place for the render.
+2) Select "Direct light" only (very fast) or "Global Illumination and Direct Light" (very slow).
+3) The image can be divided in resolution by a factoer of 1, 2 or 4 to speed up rendering.
+4) There is only one light above the scene and it can be moved slightly to the left or right. The default position is probably Ok.
+5) Set the number of samples to something low (e.g. 8) for a low quality quick render, or to a higher value (e.g. 128) for a better quality render (but will take several hours)
+6) Select CPU or CUDA if a CUDA device is present (see notes).
+7) Press the "start Render" button and the progress bar should indicate progress. 
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Screenshot.png)
 
@@ -49,6 +57,7 @@ Screenshot:
 2) I have not looked at using multiple kernels for the CUDA code. Perhaps a separate kernel for Direct light and another for indirect light...
 3) There is aliasing in the texture sampling code (when the "Use textures" feature is enabled). Filtering, similar to how shader sampling use mipmap chains etc could be looked at. Also, interpolation between pixels.
 4) I have made no attempt to minimize/optimize instructions and branches in the CUDA code. There is also C++ recursion in the CUDA code which may be consdiered inefficient.
+5) There is only one material (diffuse) and that is probably not implemented correctly. More sophisticated materials could be added once the above have been corrected/improved. I am not likely to have time to do this however...
 
 
 ## Credits
