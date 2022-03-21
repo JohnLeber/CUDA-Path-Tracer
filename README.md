@@ -61,7 +61,7 @@ No lighting (textures only)         | Direct light only         |  Direct light 
 1) Most of the execution time is spent doing the triangle/ray and bounding box/ray intersection tests. Optimizing this with K-d trees or a similar technique would reduce render times which can be massive on models with lots of triangles.
 2) I have not looked at using multiple kernels for the CUDA code. Perhaps a separate kernel for Direct light and another for indirect light...
 3) There is aliasing in the texture sampling code (when the "Use textures" feature is enabled). Filtering, similar to how shader sampling use mipmap chains etc could be looked at. Also, interpolation between pixels.
-4) I have made no attempt to minimize/optimize instructions and branches in the CUDA code. There is also C++ recursion in the CUDA code which may be consdiered inefficient.
+4) I have made no attempt to minimize/optimize instructions and branches in the CUDA code. There is also C++ recursion in the CUDA code which may be considered inefficient.
 5) I only allow two bounces for the indirect light. This is to keep render times low and to reduce the negative effect of using recursion in the CUDA code.
 6) There is only one material (diffuse) and that is probably not implemented correctly. More sophisticated materials could be added once the above have been corrected/improved. I am not likely to have time to do this however...
 
