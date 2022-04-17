@@ -54,17 +54,15 @@ No lighting (textures only)         | Direct light only         |  Direct light 
 7) To compile the application, I used CUDA 11.6 and Visual studio 2019 community edition - be sure to install the MFC desktop module.
 8) I changed the extension of the Sponza OBJ file to .mesh to avoid gitignore filtering out OBJ files. There was probably a better way to do this but...
 9) To use the Crytek Sponza model define CRYTEKSPONZA in framework.h
-10) For indirect lighting I only do two bounces. There are too many polygons in the models to do anymore than this at the moment.
 
 ## A few potential improvements and flaws
 
 1) Most of the execution time is spent doing the triangle/ray and bounding box/ray intersection tests. Optimizing this with K-d trees or a similar technique would reduce render times which can be massive on models with lots of triangles.
-2) I have not looked at using multiple kernels for the CUDA code. Perhaps a separate kernel for Direct light and another for indirect light...
+2) I have not looked at rendering the scene with multiple kernels in several passes. I suspect this would be more efficient rather than having one larger "uber-kernel". 
 3) There is aliasing in the texture sampling code (when the "Use textures" feature is enabled). Filtering, similar to how shader sampling use mipmap chains etc could be looked at. Also, interpolation between pixels.
-4) I have made no attempt to minimize/optimize instructions and branches in the CUDA code. There is also C++ recursion in the CUDA code which may be considered inefficient.
-5) I only allow two bounces for the indirect light. This is to keep render times low and to reduce the negative effect of using recursion in the CUDA code.
-6) There is only one material (diffuse) and that is probably not implemented correctly. More sophisticated materials could be added once the above have been corrected/improved. I am not likely to have time to do this however...
-7) Experimenting with a denoising algorithm perhaps, to reduce the number of sampels required.
+4) I have made no attempt to minimize/optimize instructions and branches in the CUDA code. There is also C++ recursion in the CUDA code which may be considered inefficient. 
+5) There is only one material (diffuse) and that is probably not implemented correctly. More sophisticated materials could be added once the above have been corrected/improved. I am not likely to have time to do this however...
+6) Experimenting with a denoising algorithm perhaps, to reduce the number of sampels required.
 
 ## Credits
 
