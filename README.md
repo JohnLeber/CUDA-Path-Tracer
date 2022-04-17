@@ -29,7 +29,7 @@ Experimenting with Colour:
 2) Select "Direct light" only (very fast) or "Global Illumination and Direct Light" (very slow).
 3) The image can be divided in resolution by a factor of 1, 2 or 4 to speed up rendering.
 4) There is only one light (above the scene) and it can be moved slightly to the left or right. The default position is probably Ok.
-5) Set the number of samples to something low (e.g. 8) for a low quality quick render, or to a higher value (e.g. 128) for a better quality render (but will take several hours)
+5) Set the number of samples to something low (e.g. 8) for a low quality quick render, or to a higher value (e.g. 128) for a better quality render.
 6) Select CPU or CUDA if a CUDA device is present (see notes).
 7) Press the "Start Render" button and the progress bar should indicate progress. There is no cancel button other than CTRL-ALT-DEL...
 
