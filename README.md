@@ -64,7 +64,7 @@ No lighting (textures only)         | Direct light only         |  Direct light 
 4) I have made no attempt to minimize/optimize instructions and branches in the CUDA code. There is also C++ recursion in the CUDA code which may be considered inefficient.
 5) I only allow two bounces for the indirect light. This is to keep render times low and to reduce the negative effect of using recursion in the CUDA code.
 6) There is only one material (diffuse) and that is probably not implemented correctly. More sophisticated materials could be added once the above have been corrected/improved. I am not likely to have time to do this however...
-
+7) Experimenting with a denoising algorithm perhaps, to reduce the number of sampels required.
 
 ## Credits
 
