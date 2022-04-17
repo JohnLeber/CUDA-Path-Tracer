@@ -73,4 +73,4 @@ No lighting (textures only)         | Direct light only         |  Direct light 
 3) The code I used to load the wavefront OBJ files I got from [here](http://code-section.com/blog/dx9-obj-loader).
 4) Much of the boilerplate code used for DirectX 11 are based on samples Frank Luna's [DirectX 11 book](https://www.amazon.com/Introduction-3D-Game-Programming-DirectX/dp/1936420228).
 5) The path tracing approach is partially based on samples from [scratchpixel]( https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing) and Kevin Beason's [Global Illumination in 99 lines of C++](https://www.kevinbeason.com/smallpt/).
-6) 6) Cirnel box was downloaded from [here](https://casual-effects.com/data/).
+6) The Cornel box was downloaded from [here](https://casual-effects.com/data/).
