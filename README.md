@@ -22,8 +22,16 @@ Experimenting with Colour:
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N128_Upper.png)
 
 
+
 ## Instructions
 
+### Building the software
+1) Download oidn-1.4.3.x64.vc14.windows.zip (or whatever the latest version is) from [Intel's Open Image Denoise](https://www.openimagedenoise.org/downloads.html).
+2) Once unzipped, create an environment variable called INTEL_DENOISE_PATH that points to the previous folder (e.g. "D:\oidn-1.4.3.x64.vc14.windows");
+3) Download CUDA toolkit 11.X or higher from NVIDIA
+4) I used Visual Studio 2019 to build the software (be sure to install the MFC module).
+
+### Using the softare
 1) Move the camera using the WASD keys and mouse (with left button down) to position the camera in the correct place for the render.
 2) Select "Direct light" only (very fast) or "Global Illumination and Direct Light" (very slow).
 3) The image can be divided in resolution by a factor of 1, 2 or 4 to speed up rendering.
