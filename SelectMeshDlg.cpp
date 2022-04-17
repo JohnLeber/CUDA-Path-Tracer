@@ -40,8 +40,8 @@ BOOL CSelectMeshDlg::OnInitDialog()
 	long nItem = pCombo->AddString(L"Sponza");
 	pCombo->SetItemData(nItem, 1);
 	  
-	nItem = pCombo->AddString(L"Cornel Box");
-	pCombo->SetItemData(nItem, 0); 
+	/*nItem = pCombo->AddString(L"Cornel Box");
+	pCombo->SetItemData(nItem, 0); */
 
 	nItem = pCombo->AddString(L"Crytek Sponza");
 	pCombo->SetItemData(nItem, 2);
