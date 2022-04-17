@@ -83,12 +83,10 @@ void ComputeDirectionalLight(Material mat, DirectionalLight L,
 	{
 		float3 v         = reflect(-lightVec, normal);
 		float specFactor = pow(max(dot(v, toEye), 0.0f), mat.Specular.w);
-					
 		diffuse = diffuseFactor * mat.Diffuse * L.Diffuse;
-		spec    = specFactor * mat.Specular * L.Specular;
+		spec = 0;// specFactor* mat.Specular* L.Specular;
 	}
 }
-
 //---------------------------------------------------------------------------------------
 // Computes the ambient, diffuse, and specular terms in the lighting equation
 // from a point light.  We need to output the terms separately because

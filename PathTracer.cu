@@ -247,7 +247,7 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
     long nTexWidth = 0;
     long nTexHeight = 0;
     float3* pTexData = 0;
-     
+    float3 diffuse = {0, 0, 0};
     bool bHit = false;
     float dist = FLT_MAX;
     for (int h = 0; h < nNumMeshs; h++)
@@ -271,6 +271,7 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
             nTexWidth = pMesh[h].pMaterial->nWidth;
             nTexHeight = pMesh[h].pMaterial->nHeight;
             pTexData = pMesh[h].pMaterial->pTexData;
+            diffuse = pMesh[h].pMaterial->diffuse;
         }
     }
     if (bHit)
@@ -308,6 +309,10 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
                     rgb.z = (float)(pTexData[nIndex].z) / 255.0f;
                 }
             }
+            else
+            {
+                rgb = diffuse;
+            }
         }
     }
     return bHit;
@@ -330,7 +335,7 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
     float3 rgb = { 0, 0, 0 };
     float3 nml = { 0, 0, 0 };
     float3 hitpoint = { 0, 0, 0 };
-    if (depth > 2) return rgb;
+    if (depth > 3) return rgb;
     bool bHit = false;
     float tmin = FLT_MAX;
     float dist = FLT_MAX;
@@ -390,10 +395,13 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
             indirectLighting = Vec3DivScalar(indirectLighting, N);
         }
 
-        rgb.x = (directLighting.x / M_PI / 2 + 2 * indirectLighting.x) * rgb.x;
-        rgb.y = (directLighting.y / M_PI / 2 + 2 * indirectLighting.y) * rgb.y;
-        rgb.z = (directLighting.z / M_PI / 2 + 2 * indirectLighting.z) * rgb.z;
+        rgb.x = (directLighting.x / M_PI  + 2 * indirectLighting.x) * rgb.x;
+        rgb.y = (directLighting.y / M_PI  + 2 * indirectLighting.y) * rgb.y;
+        rgb.z = (directLighting.z / M_PI  + 2 * indirectLighting.z) * rgb.z;
     } 
+  /*  rgb.x = min(rgb.x, 255.0f);
+    rgb.y = min(rgb.y, 255.0f);
+    rgb.z = min(rgb.z, 255.0f);*/
     return rgb;
 }
 //--------------------------------------------------------------------//
@@ -539,7 +547,7 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
             cudaStatus = cudaMemcpy(&pCUDAMaterials[h].nWidth, &pMaterials[h].nWidth, sizeof(long), cudaMemcpyHostToDevice);
             cudaStatus = cudaMemcpy(&pCUDAMaterials[h].nHeight, &pMaterials[h].nHeight, sizeof(long), cudaMemcpyHostToDevice);
             cudaStatus = cudaMemcpy(pTexData, pMaterials[h].pTexData, pMaterials[h].nWidth * pMaterials[h].nHeight * sizeof(float3), cudaMemcpyHostToDevice);
-
+            cudaStatus = cudaMemcpy(&pCUDAMaterials[h].diffuse, &pMaterials[h].diffuse, sizeof(float3), cudaMemcpyHostToDevice);
             cudaStatus = cudaMemcpy(&(pCUDAMaterials[h].pTexData), &pTexData, sizeof(float3*), cudaMemcpyHostToDevice);
             //cudaStatus = cudaMemcpy(&(pDst->pMesh), &(pChildMesh), sizeof(CUDAMesh*), cudaMemcpyHostToDevice);//cleanup pointer
        

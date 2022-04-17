@@ -9,6 +9,7 @@
 #define IDR_RayTracerTYPE               130
 #define IDD_SIDEVIEW                    310
 #define IDD_IMAGEDLG                    311
+#define IDD_SELECTMESH                  316
 #define IDC_RENDER                      1000
 #define IDC_CALC_RAY                    1001
 #define IDC_TOGGLE_MESH                 1003
@@ -25,6 +26,7 @@
 #define IDC_DURATION                    1012
 #define IDC_LIGHTING                    1013
 #define IDC_ENGINE                      1014
+#define IDC_COMBO1                      1014
 #define IDC_ENGINE2                     1015
 #define IDC_DIV                         1015
 #define ID_FILE_E                       32771
@@ -34,9 +36,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        313
+#define _APS_NEXT_RESOURCE_VALUE        314
 #define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1014
-#define _APS_NEXT_SYMED_VALUE           316
+#define _APS_NEXT_CONTROL_VALUE         1015
+#define _APS_NEXT_SYMED_VALUE           317
 #endif
 #endif

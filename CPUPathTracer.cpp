@@ -261,6 +261,7 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 	DWORD* pTexData = 0;
 	bool bHit = false;
 	float dist = MathHelper::Infinity;
+	DirectX::XMFLOAT3 diffuse = {0, 0, 0};
 	for (auto& m : gGlobalData->m_vMeshes)
 	{
 		if (m.bLight) continue;
@@ -276,6 +277,7 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 		nTexWidth = m.nWidth;
 		nTexHeight = m.nHeight;
 		pTexData = m.m_pTexData;
+		diffuse = m.diffuse;
 	}
 	if (bHit)
 	{
@@ -298,11 +300,15 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 		}
 		else
 		{//use the textures
-			if (nTexWidth > 0) {
+			if (pTexData && nTexWidth > 0) {
 				DWORD dwPixel = pTexData[h * nTexWidth + j];
 				rgb.x = (float)(LOBYTE(LOWORD(dwPixel))) / 255.0f;
 				rgb.y = (float)(HIBYTE(LOWORD(dwPixel))) / 255.0f;
 				rgb.z = (float)(LOBYTE(HIWORD(dwPixel))) / 255.0f;
+			}
+			else
+			{
+				rgb = diffuse;
 			}
 		}
 	}
@@ -346,7 +352,7 @@ DirectX::XMFLOAT3 CCPUPathTracer::Radiance(CLight& sun, bool bGlobalIllumination
 		{
 			DirectX::XMFLOAT3 dp = { 0,0,0 };
 			//the sun is a distance light, so lets not divide by sqrt(r*r) and 4/pi/r2 etc
-			XMStoreFloat3(&dp, DirectX::XMVector3Dot(hitNml, -sunDir));
+			XMStoreFloat3(&dp, DirectX::XMVector3Dot(hitNml, sunDir));
 			directLighting.x = sun.nIntensity * max(0.0f, dp.x);
 			directLighting.y = sun.nIntensity * max(0.0f, dp.y);
 			directLighting.z = sun.nIntensity * max(0.0f, dp.z);

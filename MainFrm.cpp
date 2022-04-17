@@ -5,6 +5,7 @@
 #include "pch.h"
 #include "framework.h"
 #include "RayTracer.h"
+#include "SelectMeshDlg.h"
 
 #include "MainFrm.h"
 #include "SideView.h"
@@ -167,8 +168,6 @@ void CMainFrame::Dump(CDumpContext& dc) const
 	CFrameWnd::Dump(dc);
 }
 #endif //_DEBUG
-
-
 // CMainFrame message handlers
 //-------------------------------------------------------------//
 bool CMainFrame::Initialize()
@@ -206,48 +205,67 @@ bool CMainFrame::Initialize()
 		}
 
 	}
-#ifdef CRYTEKSPONZA
-	CString strPath = strMeshPath + L"Sponzacrytek\\sponza.mesh";
-#else
+
+	CSelectMeshDlg dlg;
+	dlg.DoModal();
+	gGlobalData->enMeshType = dlg.m_enMeshType;
+	bool bFlipTriangles = false;
 	CString strPath = strMeshPath + L"Sponza\\sponza.mesh";
-#endif
+	if (dlg.m_enMeshType == MeshType::MeshTypeCornelBox) {
+		strPath = strMeshPath + L"CornelBox\\CornellBox-Original.mesh";
+		bFlipTriangles = true;
+	}
+	else if (dlg.m_enMeshType == MeshType::MeshTypeCrytekSponza) {
+		strPath = strMeshPath + L"Sponzacrytek\\sponza.mesh";
+	}
+	else if (dlg.m_enMeshType == MeshType::MeshTypeSponza) {
+		strPath = strMeshPath + L"Sponza\\sponza.mesh";
+	}  
+ 
 	TObjMesh objMesh;
 	LoadObj(strPath, &objMesh);
-	 
+
 	for (auto& m : objMesh.materials)//could use a map here, but...
 	{   
 		CString strMapKa = CA2T(m->map_Ka);
 		CString strMapKd = CA2T(m->map_Kd);
 		
-		CMat mat;
-		mat.strPath = strMapKd;
+		CTexture txt;
+		txt.strPath = strMapKd;
+		txt.diffuse = { m->Kd[2], m->Kd[1], m->Kd[0] };
 		if (strMapKd != L"")
 		{
 			ID3D11Resource* texResource = nullptr;
-			HRESULT hr = DirectX::CreateWICTextureFromFile(m_pD3DDevice, strMapKd, &texResource, &mat.mDiffuseMapSRV);
+			HRESULT hr = DirectX::CreateWICTextureFromFile(m_pD3DDevice, strMapKd, &texResource, &txt.mDiffuseMapSRV);
 			if (SUCCEEDED(hr)) { 
 				CImage image;
 				if (SUCCEEDED(image.Load(strMapKd)))
 				{
-					mat.nWidth = image.GetWidth();
-					mat.nHeight = image.GetHeight();
+					txt.nWidth = image.GetWidth();
+					txt.nHeight = image.GetHeight();
 					BYTE* pArray = (BYTE*)image.GetBits();
 					int nPitch = image.GetPitch();
 					int nBitCount = image.GetBPP() / 8;
-					mat.m_pTexData = new DWORD[mat.nWidth * mat.nHeight];
-					for (int h = 0; h < mat.nWidth; h++) {
-						for (int j = 0; j < mat.nHeight; j++) {
-							mat.m_pTexData[j * mat.nWidth + h] = MAKELONG(
+					txt.m_pTexData = new DWORD[txt.nWidth * txt.nHeight];
+					for (int h = 0; h < txt.nWidth; h++) {
+						for (int j = 0; j < txt.nHeight; j++) {
+							txt.m_pTexData[j * txt.nWidth + h] = MAKELONG(
 								MAKEWORD( *(pArray + nPitch * j + h * nBitCount + 0), *(pArray + nPitch * j + h * nBitCount + 1) ),
 								MAKEWORD( *(pArray + nPitch * j + h * nBitCount + 2), 255)
 							);
 						}
 					} 
 				}
-				mat.strName = CA2T(m->name);
-				gGlobalData->m_vMaterials.push_back(mat);
+				txt.strName = CA2T(m->name);
+				gGlobalData->m_vTextures.push_back(txt);
 				texResource->Release();
 			}
+		}
+		else
+		{
+			txt.strName = CA2T(m->name);
+			gGlobalData->m_vTextures.push_back(txt);
+
 		}
 		/*
 		mesh.strMapKs = CA2T(m->map_Ks);
@@ -311,7 +329,9 @@ bool CMainFrame::Initialize()
 			VBVertex* pVBVertex = (VBVertex*)pVBData;
 			DirectX::XMFLOAT3 pos1 = objMesh.vertices[objMesh.faceVertices[objMesh.faces[h].firstVertex]];
 			DirectX::XMFLOAT3 normal1 = objMesh.normals[objMesh.faceNormals[objMesh.faces[h].firstNormal]];
-			DirectX::XMFLOAT2 tex1 = objMesh.texCoords[objMesh.faceTexCoords[objMesh.faces[h].firstTexCoord]];
+			DirectX::XMFLOAT2 tex1 = { 0, 0 };
+			if(objMesh.faces[h].firstTexCoord >= 0) tex1 = objMesh.texCoords[objMesh.faceTexCoords[objMesh.faces[h].firstTexCoord]];
+
 			if (h == i.firstFace) {
 				mesh.bbmin = mesh.bbmax = pos1;
 			}
@@ -320,20 +340,31 @@ bool CMainFrame::Initialize()
 			pVBVertex->normal = normal1;
 			pVBVertex->tex = tex1;
 			pVBData += vertexSize;
-			
+
+			long nIndex2 = 1;
+			long nIndex3 = 2;
+			if (bFlipTriangles) {
+				nIndex2 = 2;
+				nIndex3 = 1;
+			}
+
 			pVBVertex = (VBVertex*)pVBData;
-			DirectX::XMFLOAT3 pos2 = objMesh.vertices[objMesh.faceVertices[objMesh.faces[h].firstVertex + 2]];
-			DirectX::XMFLOAT3 normal2 = objMesh.normals[objMesh.faceNormals[objMesh.faces[h].firstNormal + 2]];
-			DirectX::XMFLOAT2 tex2 = objMesh.texCoords[objMesh.faceTexCoords[objMesh.faces[h].firstTexCoord + 2]];
+			DirectX::XMFLOAT3 pos2 = objMesh.vertices[objMesh.faceVertices[objMesh.faces[h].firstVertex + nIndex2]];
+			DirectX::XMFLOAT3 normal2 = objMesh.normals[objMesh.faceNormals[objMesh.faces[h].firstNormal + nIndex2]];
+			DirectX::XMFLOAT2 tex2 = { 0, 0 };
+			if (objMesh.faces[h].firstTexCoord >= 0) tex2 = objMesh.texCoords[objMesh.faceTexCoords[objMesh.faces[h].firstTexCoord + nIndex2]];
 			pVBVertex->pos = pos2;
 			pVBVertex->normal = normal2;
 			pVBVertex->tex = tex2;
 			pVBData += vertexSize;
 
 			pVBVertex = (VBVertex*)pVBData;
-			DirectX::XMFLOAT3 pos3 = objMesh.vertices[objMesh.faceVertices[objMesh.faces[h].firstVertex + 1]];
-			DirectX::XMFLOAT3 normal3 = objMesh.normals[objMesh.faceNormals[objMesh.faces[h].firstNormal + 1]];
-			DirectX::XMFLOAT2 tex3 = objMesh.texCoords[objMesh.faceTexCoords[objMesh.faces[h].firstTexCoord + 1]];
+			DirectX::XMFLOAT3 pos3 = objMesh.vertices[objMesh.faceVertices[objMesh.faces[h].firstVertex + nIndex3]];
+			DirectX::XMFLOAT3 normal3 = objMesh.normals[objMesh.faceNormals[objMesh.faces[h].firstNormal + nIndex3]];
+			DirectX::XMFLOAT2 tex3 = { 0, 0 }; 
+			
+			if (objMesh.faces[h].firstTexCoord >= 0) tex3 = objMesh.texCoords[objMesh.faceTexCoords[objMesh.faces[h].firstTexCoord + nIndex3]];
+
 			pVBVertex->pos = pos3;
 			pVBVertex->normal = normal3;
 			pVBVertex->tex = tex3;
@@ -377,11 +408,12 @@ bool CMainFrame::Initialize()
 
 		mesh.nNumTriangles = i.numFaces;
 		bool bFoundmat = false;
-		for (auto mt : gGlobalData->m_vMaterials) {
+		for (auto mt : gGlobalData->m_vTextures) {
 			if (mt.strName == mesh.strMaterial) {
 				mesh.m_pTexData = mt.m_pTexData;
 				mesh.nWidth = mt.nWidth;
 				mesh.nHeight = mt.nHeight;
+				mesh.diffuse = mt.diffuse;
 				bFoundmat = true;
 				break;
 			}
@@ -439,6 +471,12 @@ bool CMainFrame::Initialize()
 		//ATLTRACE2(L" NumTris = %d\n", i.nNumTriangles);
 		nTotalTris = nTotalTris + i.nNumTriangles;
 	}
+
+	if (m_pView)
+	{
+		m_pView->PositionCameras();
+	}
+
 	return true;
 } 
 //-------------------------------------------------------------------------------------//

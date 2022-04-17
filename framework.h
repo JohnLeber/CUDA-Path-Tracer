@@ -58,9 +58,7 @@
 #include <vector>
 #include <map>
 
-
 //#define CRYTEKSPONZA
-
 const UINT WM_PROGRESS_UPDATE = WM_USER + 1000;
 const UINT WM_RENDER_START = WM_USER + 1001;
 const UINT WM_RENDER_END = WM_USER + 1002;
@@ -70,16 +68,16 @@ struct VBVertex
 	DirectX::XMFLOAT3 pos, normal;
 	DirectX::XMFLOAT2 tex;
 };
-
 //---------------------------------------------------------------//
 struct CUDAMaterial;
-struct CMat
+struct CTexture
 {
 	CString strName;
 	CString strPath;
 	DWORD* m_pTexData = 0;//pointer to RGBA bytes
 	LONG nWidth = 0;
 	LONG nHeight = 0;
+	DirectX::XMFLOAT3 diffuse = {0 ,0 ,0 };//when there is no texturemap e.g. cornel box
 	ID3D11ShaderResourceView* mDiffuseMapSRV = 0;
 	CUDAMaterial* pCUDAMaterial = 0;
 }; 
@@ -115,7 +113,6 @@ struct CMesh
 	std::vector<VBVertex> vTriangles;
 	long nNumTriangles = 0;
 
- 
 	bool DEBUGIntersectRayAxisAlignedBox(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, DirectX::XMFLOAT3& bbmax, DirectX::XMFLOAT3& bbmin);
 	bool DEBUGIntersectRayTriangle(DirectX::XMVECTOR rayOrigin, DirectX::XMVECTOR rayDir, DirectX::XMVECTOR v0, DirectX::XMVECTOR v1, DirectX::XMVECTOR v2, float* pDist, float* pU, float* pV);
 
@@ -129,11 +126,11 @@ struct CMesh
 	DWORD* m_pTexData = 0;//pointer to RGBA bytes
 	LONG nWidth = 0;
 	LONG nHeight = 0;
+	DirectX::XMFLOAT3 diffuse = {0, 0, 0};
 
 	DirectX::XMFLOAT3 bbmin, bbmax; // bounding box.
 	XNA::AxisAlignedBox boundingbox;
-	 
- 
+	  
 	CString strMaterial;
 	float Ka[3] = { 0,0,0 };	// Ambient.
 	float Kd[3] = { 0,0,0 };	// Diffuse (color).
@@ -153,17 +150,25 @@ struct CMesh
 	CString strMapRefl; // Reflection map.
 };
 //-------------------------------------------------------------------------------//
+enum MeshType
+{
+	MeshTypeSponza = 0,
+	MeshTypeCrytekSponza = 1,
+	MeshTypeCornelBox = 2
+};
+//-------------------------------------------------------------------------------//
 struct CGlobalData
 {
 	~CGlobalData()
 	{
 
 	}
+
 	bool m_bRendering = false;
 	std::vector<CMesh> m_vMeshes;
-	std::vector<CMat> m_vMaterials;	 
+	std::vector<CTexture> m_vTextures;
 	HWND m_hSideWnd = 0;//send progress messages to this window
- 
+	MeshType enMeshType = MeshType::MeshTypeCornelBox;//0 = crytek sponza, other sponza
 };
 //-------------------------------------------------------------------------------//
 extern CGlobalData* gGlobalData;

@@ -21,6 +21,7 @@ struct CUDAMaterial
 	float3* pTexData = 0;
 	long nWidth = 0;
 	long nHeight = 0;
+	float3 diffuse = {0, 0, 0};
 };
 //-------------------------------------------------------------//
 struct CUDAMesh

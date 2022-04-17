@@ -268,8 +268,9 @@ INT LoadObj(LPCTSTR sFileName, TObjMesh* pOutObjMesh)
 				if (*s == ' ')
 					numGroups++;
 		}
-		else if (0 == _strnicmp("mtllib ", buffer, 7))
+		else if (0 == _strnicmp("mtllib ", buffer, 7)) {
 			sscanf(buffer + 7, "%s", pOutObjMesh->sMtlFileName);
+		}
 	}
 
 	if (numVertices == 0 || numFaces == 0)

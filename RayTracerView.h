@@ -61,7 +61,7 @@ public:
 #endif
 	void Init(IDWriteTextFormat* pTextFormat, ID2D1Factory* pD2DFactory, DXGI_SWAP_CHAIN_DESC sd, bool bEnable4xMsaa, UINT n4xMsaaQuality, ID3D11Device* pD3DDevice, ID3D11DeviceContext* pD3DImmediateContext);
 	void OnDraw(CDC* /*pDC*/);
-
+	void PositionCameras();
 protected:
 	CLight m_Sun;
 	CMesh m_SunMesh;

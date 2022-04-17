@@ -65,7 +65,7 @@ CRayTracerView::~CRayTracerView()
 		{
 			i.Clear();
 		}
-		for (auto& i : gGlobalData->m_vMaterials)
+		for (auto& i : gGlobalData->m_vTextures)
 		{
 			if (i.mDiffuseMapSRV)
 			{
@@ -133,10 +133,10 @@ BOOL CRayTracerView::PreCreateWindow(CREATESTRUCT& cs)
 //-----------------------------------------------------------------------//
 void CRayTracerView::OnInitialUpdate()
 {
-	mDirLights[0].Ambient = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-	mDirLights[0].Diffuse = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	mDirLights[0].Ambient = DirectX::XMFLOAT4(0.75f, 0.75f, 0.75f, 1.0f);
+	mDirLights[0].Diffuse = DirectX::XMFLOAT4(0.75f, 0.75f, 0.75f, 1.0f);
 	mDirLights[0].Specular = DirectX::XMFLOAT4(0.15f, 0.15f, 0.15f, 1.0f);
-	mDirLights[0].Direction = DirectX::XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
+	mDirLights[0].Direction = DirectX::XMFLOAT3(0.57735f, 0.57735f, 0.57735f);
 
 	mDirLights[1].Ambient = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	mDirLights[1].Diffuse = DirectX::XMFLOAT4(0.20f, 0.20f, 0.20f, 1.0f);
@@ -205,19 +205,28 @@ void CRayTracerView::Init(IDWriteTextFormat* pTextFormat, ID2D1Factory* pD2DFact
 	m_Camera.Pitch(0);
 	m_Camera.SetLens(0.25f * MathHelper::Pi, GetAspectRatio(), m_nNearZ, m_nFarZ);
 
-#ifdef CRYTEKSPONZA
-	m_Camera.SetPosition(-1280, 138, -50);
-	m_Camera.RotateY(3.1416 / 2);
-#else
-	m_Camera.SetPosition(10, 5, 0);
-	m_Camera.RotateY(- 2* 3.1416 / 4);
-#endif
-	
+	m_Camera.SetPosition(0, 0, 0);
 
-	/*float nPos = m_SunPos.GetPos() / 2000.0f;
-	float nDist = 1;
+	float nPos = 900.0f / 2000.0f;
 	float nAngle = M_PI * nPos;
-	DirectX::XMFLOAT3 sunpos(nDist * cos(nAngle), nDist * sin(nAngle), 0);*/
+	SetSunPos(nAngle);//noon 
+ 
+}
+//-----------------------------------------------------------------------//
+void CRayTracerView::PositionCameras()
+{
+	if (gGlobalData->enMeshType == MeshType::MeshTypeCrytekSponza) {
+		m_Camera.SetPosition(-1280, 138, -50);
+		m_Camera.RotateY(3.1416 / 2);
+	}
+	else if (gGlobalData->enMeshType == MeshType::MeshTypeSponza) {
+		m_Camera.SetPosition(10, 5, 0);
+		m_Camera.RotateY(-2 * 3.1416 / 4);
+	}
+	else if (gGlobalData->enMeshType == MeshType::MeshTypeCornelBox) {
+		m_Camera.SetPosition(0, 1.5, 4);
+		m_Camera.RotateY(3.1416);
+	}
 	float nPos = 900.0f / 2000.0f;
 	float nAngle = M_PI * nPos;
 	SetSunPos(nAngle);//noon 
@@ -429,11 +438,16 @@ void CRayTracerView::UpdateScene(float dt)
 	{
 		if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
 		{
-#ifdef CRYTEKSPONZA
-			nScale = 1200;
-#else
-			nScale = 120;
-#endif
+			if (gGlobalData->enMeshType == MeshType::MeshTypeCrytekSponza) {
+				nScale = 1200;
+			}
+			else if (gGlobalData->enMeshType == MeshType::MeshTypeSponza) {
+				nScale = 120;
+			}
+			else if (gGlobalData->enMeshType == MeshType::MeshTypeCornelBox) {
+				nScale = 10;
+			}
+ 
 		}
 		if (GetAsyncKeyState('W') & 0x8000)
 			m_Camera.Walk(1.0f * dt * nScale);
@@ -496,22 +510,45 @@ void CRayTracerView::Render(float fps, float mspf)
 	DirectX::XMFLOAT4X4 TexTransform;
 	XMStoreFloat4x4(&TexTransform, I);
 
-
+	mDirLights[0].Direction.x = -m_Sun.direction.x;
+	mDirLights[0].Direction.y = -m_Sun.direction.y;
+	mDirLights[0].Direction.z = -m_Sun.direction.z;
 	Effects::BasicFX->SetDirLights(mDirLights);
 	Effects::BasicFX->SetEyePosW(m_Camera.GetPosition());
 	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
 	DirectX::XMMATRIX worldInvTranspose = DirectX::XMMatrixIdentity();
 	DirectX::XMMATRIX worldViewProj = DirectX::XMMatrixIdentity();
-
-
+	 
 	if (m_bShowMesh)
 	{
 		for (auto& m : gGlobalData->m_vMeshes)
 		{
 			if (m.bLight) continue;
 
+			ID3D11ShaderResourceView* pDiffuseMapSRV = 0;
+			bool bHastexture = false;
+			for (auto mt : gGlobalData->m_vTextures)
+			{
+				if (mt.strName == m.strMaterial)
+				{
+					if (mt.mDiffuseMapSRV) {
+						pDiffuseMapSRV = mt.mDiffuseMapSRV;
+						bHastexture = true;
+					}
+					break;
+				}
+			} 
+
 			ID3DX11EffectTechnique* activeSliderTech = Effects::BasicFX->SliderTech;
-			m_pD3DImmediateContext->IASetInputLayout(InputLayouts::Basic32);
+			if (bHastexture) 
+			{
+				m_pD3DImmediateContext->IASetInputLayout(InputLayouts::Basic32);
+			}
+			else
+			{
+				activeSliderTech = Effects::BasicFX->Light1Tech;
+				m_pD3DImmediateContext->IASetInputLayout(InputLayouts::PosNormal);
+			}
 			D3DX11_TECHNIQUE_DESC techDesc;
 			activeSliderTech->GetDesc(&techDesc);
 
@@ -541,17 +578,10 @@ void CRayTracerView::Render(float fps, float mspf)
 				mat.Specular.z = m.Ks[2];
 				Effects::BasicFX->SetMaterial(mat);
 
-				for (auto mt : gGlobalData->m_vMaterials)
-				{
-					if (mt.strName == m.strMaterial)
-					{
-						Effects::BasicFX->SetDiffuseMap(mt.mDiffuseMapSRV);
-						break;
-					}
-				}
-
-
-				Effects::BasicFX->SetTexTransform(XMLoadFloat4x4(&TexTransform)); 
+				if (bHastexture) {
+					Effects::BasicFX->SetDiffuseMap(pDiffuseMapSRV);
+					Effects::BasicFX->SetTexTransform(XMLoadFloat4x4(&TexTransform));
+				} 
 				m_pD3DImmediateContext->RSSetState(RenderStates::NoCullRS);
 
 				if(m_bWireframe)
@@ -559,8 +589,8 @@ void CRayTracerView::Render(float fps, float mspf)
 					m_pD3DImmediateContext->RSSetState(RenderStates::WireframeRS);
 				}
 
-				float blendFactor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-				m_pD3DImmediateContext->OMSetBlendState(RenderStates::TransparentBS, blendFactor, 0xffffffff);
+				//float blendFactor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+				//m_pD3DImmediateContext->OMSetBlendState(RenderStates::TransparentBS, blendFactor, 0xffffffff);
 
 				m_pD3DImmediateContext->IASetVertexBuffers(0, 1, &m.pVB, &stride, &offset);
 				m_pD3DImmediateContext->IASetIndexBuffer(m.pIB, DXGI_FORMAT_R32_UINT, 0);
@@ -568,7 +598,7 @@ void CRayTracerView::Render(float fps, float mspf)
 				activeSliderTech->GetPassByIndex(p)->Apply(0, m_pD3DImmediateContext);
 				m_pD3DImmediateContext->DrawIndexed(m.nNumTriangles * 3, 0, 0);
 				// Restore default blend state
-				m_pD3DImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
+				//m_pD3DImmediateContext->OMSetBlendState(0, blendFactor, 0xffffffff);
 			}
 		}
 	}
@@ -693,6 +723,7 @@ void CRayTracerView::CopyMesh(CUDAMesh* pVB, CMesh* pSrc)
 			CopyMesh(&pVB->pMesh[h], &(pSrc->m_pMesh[h]));
 		}
 	}
+
 	pVB->bbmin.x = pSrc->bbmin.x;
 	pVB->bbmin.y = pSrc->bbmin.y;
 	pVB->bbmin.z = pSrc->bbmin.z;
@@ -704,6 +735,7 @@ void CRayTracerView::CopyMesh(CUDAMesh* pVB, CMesh* pSrc)
 	{
 		long nStop = 0;
 	}
+	
 	pVB->bLight = pSrc->bLight;
 	pVB->BB.center.x = pSrc->boundingbox.Center.x;
 	pVB->BB.center.y = pSrc->boundingbox.Center.y;
@@ -773,10 +805,10 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	//Copy materials
-	long nNumMaterials = gGlobalData->m_vMaterials.size();
+	long nNumMaterials = gGlobalData->m_vTextures.size();
 	CUDAMaterial* pMaterials = new CUDAMaterial[nNumMaterials];
 	long nMatIndex = 0; 	
-	for (auto& m = gGlobalData->m_vMaterials.begin(); m != gGlobalData->m_vMaterials.end(); ++m)
+	for (auto& m = gGlobalData->m_vTextures.begin(); m != gGlobalData->m_vTextures.end(); ++m)
 	{
 	 
 		if (m->nWidth != 0 && m->nHeight != 0) {
@@ -792,6 +824,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 			}
 			pMaterials[nMatIndex].nWidth = m->nWidth;
 			pMaterials[nMatIndex].nHeight = m->nHeight;
+			pMaterials[nMatIndex].diffuse = { m->diffuse.x, m->diffuse.y, m->diffuse.z };
 			m->pCUDAMaterial = &(pMaterials[nMatIndex]);
 		}
 		else
@@ -799,6 +832,8 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 			pMaterials[nMatIndex].pTexData = 0;
 			pMaterials[nMatIndex].nWidth = 0;
 			pMaterials[nMatIndex].nHeight = 0;
+			pMaterials[nMatIndex].diffuse = { m->diffuse.x, m->diffuse.y, m->diffuse.z };
+			m->pCUDAMaterial = &(pMaterials[nMatIndex]);
 		}
 		nMatIndex++;
 	}
@@ -813,7 +848,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 		pVB[nMeshIndex].pMaterial = 0;
 		CopyMesh(&pVB[nMeshIndex], &(*mesh));
 
-		for (auto mt : gGlobalData->m_vMaterials) {
+		for (auto mt : gGlobalData->m_vTextures) {
 			if (mt.strName == mesh->strMaterial) {
 				pVB[nMeshIndex].pMaterial = mt.pCUDAMaterial;
 				break;
@@ -824,7 +859,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 
  
 	gGlobalData->m_bRendering = true;
-	//send a messaahe to the side bar to that it can disable controls unmtil the render is finished.
+	//send a message to the side bar to that it can disable controls unmtil the render is finished.
 	::SendMessage(gGlobalData->m_hSideWnd, WM_RENDER_START, 0, 0);
 
 	DWORD dwStart = GetTickCount();
@@ -876,7 +911,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 	CImageDlg dlg;
 	dlg.SetImage(pImage, (dwEnd - dwStart) / 1000);
 	dlg.DoModal();
-	//send a messaahe to the side bar to that it can re-enable controls
+	//send a message to the side bar to that it can re-enable controls
 	::SendMessage(gGlobalData->m_hSideWnd, WM_RENDER_END, 0, 0);
 
 	delete pImage;
@@ -980,11 +1015,17 @@ void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures, long nDiv, 
 void CRayTracerView::SetSunPos(float nAngle)
 {
 	//0 = sunrise, PI / 2 = noon, PI = sunset
-#ifdef CRYTEKSPONZA
 	float nDist = 2000;
-#else
-	float nDist = 80;
-#endif
+	if (gGlobalData->enMeshType == MeshType::MeshTypeCrytekSponza) {
+		nDist = 2000;
+	}
+	else if (gGlobalData->enMeshType == MeshType::MeshTypeSponza) {
+		nDist = 80;
+	}
+	else if (gGlobalData->enMeshType == MeshType::MeshTypeCornelBox) {
+		nDist = 20;
+	}
+ 
 	DirectX::XMFLOAT3 sunpos(0, nDist * sin(nAngle), nDist * cos(nAngle));
  
 	if (mSunVB) mSunVB->Release();
@@ -996,11 +1037,17 @@ void CRayTracerView::SetSunPos(float nAngle)
 	CMesh mesh;
 	GeometryGenerator G;
 	GeometryGenerator::MeshData meshData;
-#ifdef CRYTEKSPONZA
-	G.CreateCylinder(200, 200, 50, 18, 1, meshData);
-#else
-	G.CreateCylinder(20, 20, 5, 18, 1, meshData);
-#endif
+
+	if (gGlobalData->enMeshType == MeshType::MeshTypeCrytekSponza) {
+		G.CreateCylinder(200, 200, 50, 18, 1, meshData);
+	}
+	else if (gGlobalData->enMeshType == MeshType::MeshTypeSponza) {
+		G.CreateCylinder(20, 20, 5, 18, 1, meshData);
+	}
+	else if (gGlobalData->enMeshType == MeshType::MeshTypeCornelBox) {
+		G.CreateCylinder(20, 20, 5, 18, 1, meshData);
+	}
+ 
 	long nNumVertices = meshData.Vertices.size();
 	long nNumTris = meshData.Indices.size() / 3;
 
