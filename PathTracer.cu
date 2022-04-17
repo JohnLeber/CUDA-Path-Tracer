@@ -8,7 +8,9 @@
 //#include <thrust/random.h>
 #include <curand_kernel.h>
 //#include <thrust/random.h>
+// 
 //--------------------------------------------------------------------//
+const int MAX_BOUNCES = 3;
 #define FLT_MAX          3.402823466e+38F        // max value
 #define M_PI 3.14159265f
 //--------------------------------------------------------------------//
@@ -335,7 +337,7 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
     float3 rgb = { 0, 0, 0 };
     float3 nml = { 0, 0, 0 };
     float3 hitpoint = { 0, 0, 0 };
-    if (depth > 3) return rgb;
+    if (depth > MAX_BOUNCES) return rgb;
     bool bHit = false;
     float tmin = FLT_MAX;
     float dist = FLT_MAX;
@@ -386,22 +388,23 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
                     sample.x * Nb.z + sample.y * hitNml.z + sample.z * Nt.z 
                 };
                 float3 ray = Vec3Add(hitPoint, Vec3MultScalar(sampleWorld, bias));
-                float3 rd = Radiance(nNumSamples, s, pVB, nNumMeshs, ray, sampleWorld,
+                //set number of samples to 1 for 2nd, 4rd... bounces
+                float3 rd = Radiance(1, s, pVB, nNumMeshs, ray, sampleWorld,
                     depth + 1, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity, bUseTextures);
                 indirectLighting.x = indirectLighting.x + r1 * rd.x / pdf;
                 indirectLighting.y = indirectLighting.y + r1 * rd.y / pdf;
-                indirectLighting.z = indirectLighting.z + r1 * rd.z / pdf;
+                indirectLighting.z = indirectLighting.z + r1 * rd.z / pdf; 
             }
             indirectLighting = Vec3DivScalar(indirectLighting, N);
         }
-
-        rgb.x = (directLighting.x / M_PI  + 2 * indirectLighting.x) * rgb.x;
-        rgb.y = (directLighting.y / M_PI  + 2 * indirectLighting.y) * rgb.y;
-        rgb.z = (directLighting.z / M_PI  + 2 * indirectLighting.z) * rgb.z;
+        //check - not sure if I am meant to multiply indirectLighting by sunintensity - but the images look better...
+        rgb.x = (directLighting.x + nSunIntensity * indirectLighting.x) * rgb.x / M_PI;
+        rgb.y = (directLighting.y + nSunIntensity * indirectLighting.y) * rgb.y / M_PI;
+        rgb.z = (directLighting.z + nSunIntensity * indirectLighting.z) * rgb.z / M_PI;
     } 
-  /*  rgb.x = min(rgb.x, 255.0f);
-    rgb.y = min(rgb.y, 255.0f);
-    rgb.z = min(rgb.z, 255.0f);*/
+    rgb.x = min(rgb.x, 1.0f);
+    rgb.y = min(rgb.y, 1.0f);
+    rgb.z = min(rgb.z, 1.0f);
     return rgb;
 }
 //--------------------------------------------------------------------//

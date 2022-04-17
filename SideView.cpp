@@ -108,11 +108,13 @@ void CSideView::OnInitialUpdate()
     CComboBox* pDiv = (CComboBox*)GetDlgItem(IDC_DIV);
     nItem = pDiv->AddString(L"1");
     pDiv->SetItemData(nItem, 1);
+    pDiv->SetCurSel(nItem);
+
     nItem = pDiv->AddString(L"1/2");
     pDiv->SetItemData(nItem, 2);
     nItem = pDiv->AddString(L"1/4");
     pDiv->SetItemData(nItem, 4);
-    pDiv->SetCurSel(nItem);
+  
 }
 //-----------------------------------------------------------------------//
 bool CSideView::DoPump()

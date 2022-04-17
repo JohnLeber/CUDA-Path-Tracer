@@ -324,7 +324,7 @@ DirectX::XMFLOAT3 CCPUPathTracer::Radiance(CLight& sun, bool bGlobalIllumination
 	DirectX::XMFLOAT3 rgb = { 0, 0, 0 };
 	DirectX::XMFLOAT3 nml = { 0, 0, 0 };
 	DirectX::XMFLOAT3 hitpoint = { 0, 0, 0 };
-	if (depth > 2) return rgb;
+	if (depth > MAX_BOUNCES) return rgb;
 	bool bHit = false;
 	float tmin = MathHelper::Infinity;
 	float dist = MathHelper::Infinity;
@@ -378,25 +378,28 @@ DirectX::XMFLOAT3 CCPUPathTracer::Radiance(CLight& sun, bool bGlobalIllumination
 					sample.x * Nb.y + sample.y * hitNormal.y + sample.z * Nt.y,
 					sample.x * Nb.z + sample.y * hitNormal.z + sample.z * Nt.z);
 				DirectX::XMVECTOR sampleWorld = DirectX::XMLoadFloat3(&sampleWorldF);
-				DirectX::XMFLOAT3 rd = Radiance(sun, bGlobalIllumination, nNumSamples, bUseTextures, hitPoint + bias * sampleWorld, sampleWorld, depth + 1, Xi);
+				//set number of samples to 1 for 2nd, 4rd... bounces
+				DirectX::XMFLOAT3 rd = Radiance(sun, bGlobalIllumination, 1, bUseTextures, hitPoint + bias * sampleWorld, sampleWorld, depth + 1, Xi);
 				indirectLighting.x = indirectLighting.x + r1 * rd.x / pdf;
 				indirectLighting.y = indirectLighting.y + r1 * rd.y / pdf;
 				indirectLighting.z = indirectLighting.z + r1 * rd.z / pdf;
 				if (indirectLighting.x > 0.001)
 				{
 					long nStop = 0;
-				}
-				//indirectLighting += r1 * castRay(hitPoint + sampleWorld * options.bias,
-			//		sampleWorld, objects, lights, options, depth + 1) / pdf;
+				} 
 			}
 			indirectLighting.x = indirectLighting.x / N;
 			indirectLighting.y = indirectLighting.y / N;
 			indirectLighting.z = indirectLighting.z / N;
 		}
-		rgb.x = (directLighting.x / M_PI / 2 + 2 * indirectLighting.x) * rgb.x;// *isect.hitObject->albedo;
-		rgb.y = (directLighting.y / M_PI / 2 + 2 * indirectLighting.y) * rgb.y;// *isect.hitObject->albedo;
-		rgb.z = (directLighting.z / M_PI / 2 + 2 * indirectLighting.z) * rgb.z;// *isect.hitObject->albedo;
+		//check - not sure if I am meant to multiply indirectLighting by sunintensity - but the images look better...
+		rgb.x = (directLighting.x + sun.nIntensity * indirectLighting.x) * rgb.x / M_PI;// *isect.hitObject->albedo;
+		rgb.y = (directLighting.y + sun.nIntensity * indirectLighting.y) * rgb.y / M_PI;// *isect.hitObject->albedo;
+		rgb.z = (directLighting.z + sun.nIntensity * indirectLighting.z) * rgb.z / M_PI;// *isect.hitObject->albedo;
 	}
+	rgb.x = min(rgb.x, 1.0f);
+	rgb.y = min(rgb.y, 1.0f);
+	rgb.z = min(rgb.z, 1.0f);
 	return rgb;
 }
 //-----------------------------------------------------------------------//

@@ -57,7 +57,7 @@
 #include <string>
 #include <vector>
 #include <map>
-
+const int MAX_BOUNCES = 3;//for CPU
 //#define CRYTEKSPONZA
 const UINT WM_PROGRESS_UPDATE = WM_USER + 1000;
 const UINT WM_RENDER_START = WM_USER + 1001;
@@ -92,7 +92,7 @@ public:
 	DirectX::XMFLOAT3 direction = { 0, 1, 0 };
 	DirectX::XMFLOAT3 pos = { 0, 0, 0 };
 	float nScalar = 3000;
-	float nIntensity = 1;
+	float nIntensity = 3;
 };
 //-------------------------------------------------------------------------------//
 struct CMesh
