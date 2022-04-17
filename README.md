@@ -6,14 +6,15 @@ The goal was to write a simple test framework that would allow me to load a mode
 
 ## Sample images
 
-Default Sponza model (128 samples)
+Default Sponza model (128 sample - no denoising)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Final2.png)
 
-Using Crytek's Sponza model (400 samples):
+Using Crytek's Sponza model (400 samples - no denoising)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/200GIb.png)
 
+Crytek's Sponza model (64 samples + denoised)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N64_DN_Upper.png)
 
