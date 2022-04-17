@@ -222,8 +222,8 @@ __device__ bool Intersect(CUDAMesh& mesh, float3& rayOrigin, float3& rayDir, flo
         {
             if (t < dist) {
                 dist = t;
-                u = (1 - ua - va) * mesh.pVertices[3 * k + 0].tex.x + ua * mesh.pVertices[3 * k + 1].tex.x + va * mesh.pVertices[3 * k + 2].tex.x;
-                v = (1 - ua - va) * mesh.pVertices[3 * k + 0].tex.y + ua * mesh.pVertices[3 * k + 1].tex.y + va * mesh.pVertices[3 * k + 2].tex.y;
+                u = (1 - ua - va) * mesh.pVertices[3 * k + 0].tex.y + ua * mesh.pVertices[3 * k + 1].tex.y + va * mesh.pVertices[3 * k + 2].tex.y;
+                v = (1 - ua - va) * mesh.pVertices[3 * k + 0].tex.x + ua * mesh.pVertices[3 * k + 1].tex.x + va * mesh.pVertices[3 * k + 2].tex.x;
 
                 hitpoint.x = (1 - ua - va) * mesh.pVertices[3 * k + 0].pos.x + ua * mesh.pVertices[3 * k + 1].pos.x + va * mesh.pVertices[3 * k + 2].pos.x;
                 hitpoint.y = (1 - ua - va) * mesh.pVertices[3 * k + 0].pos.y + ua * mesh.pVertices[3 * k + 1].pos.y + va * mesh.pVertices[3 * k + 2].pos.y;

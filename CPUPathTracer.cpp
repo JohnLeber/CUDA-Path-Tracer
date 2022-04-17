@@ -233,8 +233,8 @@ bool CMesh::Intersect(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, f
 		{
 			if (t < dist) {
 				dist = t;
-				u = (1 - ua - va) * vTriangles[3 * k + 0].tex.x + ua * vTriangles[3 * k + 1].tex.x + va * vTriangles[3 * k + 2].tex.x;
-				v = (1 - ua - va) * vTriangles[3 * k + 0].tex.y + ua * vTriangles[3 * k + 1].tex.y + va * vTriangles[3 * k + 2].tex.y;
+				u = (1 - ua - va) * vTriangles[3 * k + 0].tex.y + ua * vTriangles[3 * k + 1].tex.y + va * vTriangles[3 * k + 2].tex.y;
+				v = (1 - ua - va) * vTriangles[3 * k + 0].tex.x + ua * vTriangles[3 * k + 1].tex.x + va * vTriangles[3 * k + 2].tex.x;
 
 				hitpoint.x = (1 - ua - va) * vTriangles[3 * k + 0].pos.x + ua * vTriangles[3 * k + 1].pos.x + va * vTriangles[3 * k + 2].pos.x;
 				hitpoint.y = (1 - ua - va) * vTriangles[3 * k + 0].pos.y + ua * vTriangles[3 * k + 1].pos.y + va * vTriangles[3 * k + 2].pos.y;

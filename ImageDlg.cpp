@@ -5,6 +5,8 @@
 #include "RayTracer.h"
 #include "ImageDlg.h"
 #include "afxdialogex.h"
+#include <OpenImageDenoise/oidn.hpp>
+
 
 //-----------------------------------------------------------------------//
 // CImageDlg dialog
@@ -29,6 +31,7 @@ void CImageDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CImageDlg, CDialog)
 	ON_WM_PAINT()
 	ON_BN_CLICKED(IDC_BUTTON1, &CImageDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_DENOISE, &CImageDlg::OnBnClickedDenoise)
 END_MESSAGE_MAP()
 //-----------------------------------------------------------------------//
 void CImageDlg::SetImage(CImage* pImage, long nNumSeconds)
@@ -143,3 +146,56 @@ void CImageDlg::OnBnClickedButton1()
 	}
 }
 //-----------------------------------------------------------------------//
+void CImageDlg::OnBnClickedDenoise()
+{
+	long nWidth = m_pImage->GetWidth();
+	long nHeight = m_pImage->GetHeight();
+	float* pBMP = new float[nWidth * nHeight * 3];
+	float* pOutput = new float[nWidth * nHeight * 3];
+	BYTE* pArray = (BYTE*)m_pImage->GetBits();
+	int nPitch = m_pImage->GetPitch();
+	int nBitCount = m_pImage->GetBPP() / 8;
+	for (int h = 0; h < nHeight; h++) {
+		for (int j = 0; j < nWidth; j++) {
+			pBMP[h * nWidth * 3 + j * 3 + 0] = (*(pArray + nPitch * h + j * nBitCount + 0)) / 255.0f;
+			pBMP[h * nWidth * 3 + j * 3 + 1] = (*(pArray + nPitch * h + j * nBitCount + 1)) / 255.0f;
+			pBMP[h * nWidth * 3 + j * 3 + 2] = (*(pArray + nPitch * h + j * nBitCount + 2)) / 255.0f;
+		}
+	}
+
+
+	// Create an Intel Open Image Denoise device
+	oidn::DeviceRef device = oidn::newDevice();
+	device.commit();
+	// Create a filter for denoising a beauty (color) image using optional auxiliary images too
+	oidn::FilterRef filter = device.newFilter("RT"); // generic ray tracing filter
+	filter.setImage("color", pBMP, oidn::Format::Float3, nWidth, nHeight); // beauty
+	//filter.setImage("albedo", albedoPtr, oidn::Format::Float3, nWidth, nHeight); // auxiliary
+	//filter.setImage("normal", normalPtr, oidn::Format::Float3, nWidth, nHeight); // auxiliary
+	filter.setImage("output", pOutput, oidn::Format::Float3, nWidth, nHeight); // denoised beauty
+	filter.set("hdr", true); // beauty image is HDR
+	filter.commit();
+	// Filter the image
+	filter.execute();
+	// Check for errors
+	const char* errorMessage;
+	if (device.getError(errorMessage) != oidn::Error::None) {
+		std::cout << "Error: " << errorMessage << std::endl;
+	}
+	 
+	for (int h = 0; h < nHeight; h++) {
+		for (int j = 0; j < nWidth; j++) {
+			{
+				*(pArray + nPitch * h + j * nBitCount + 0) = pOutput[h * nWidth * 3 + j * 3 + 0] * 255;
+				*(pArray + nPitch * h + j * nBitCount + 1) = pOutput[h * nWidth * 3 + j * 3 + 1] * 255;
+				*(pArray + nPitch * h + j * nBitCount + 2) = pOutput[h * nWidth * 3 + j * 3 + 2] * 255;
+			}
+		}
+	}
+
+	delete[] pBMP;
+	delete[] pOutput;
+
+	DrawImage(m_pImage, IDC_BORDER);
+}
+ 

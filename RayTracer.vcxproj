@@ -119,10 +119,12 @@
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <OpenMPSupport>true</OpenMPSupport>
+      <AdditionalIncludeDirectories>$(INTEL_DENOISE_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>d2d1.lib;d3d11.lib;D3DCompiler.lib;Effects11d.lib;dxgi.lib;windowscodecs.lib;dwrite.lib;msxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d2d1.lib;d3d11.lib;D3DCompiler.lib;Effects11d.lib;dxgi.lib;windowscodecs.lib;dwrite.lib;msxml2.lib;OpenImageDenoise.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(INTEL_DENOISE_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -180,12 +182,14 @@
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <OpenMPSupport>true</OpenMPSupport>
+      <AdditionalIncludeDirectories>$(INTEL_DENOISE_PATH)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>d2d1.lib;d3d11.lib;D3DCompiler.lib;Effects11.lib;dxgi.lib;windowscodecs.lib;dwrite.lib;msxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d2d1.lib;d3d11.lib;D3DCompiler.lib;Effects11.lib;dxgi.lib;windowscodecs.lib;dwrite.lib;msxml2.lib;OpenImageDenoise.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(INTEL_DENOISE_PATH)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
