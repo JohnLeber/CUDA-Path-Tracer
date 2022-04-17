@@ -13,13 +13,9 @@ Default Sponza model (128 samples)
 Using Crytek's Sponza model (400 samples):
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/200GIb.png)
- 
 
 
-
-Experimenting with Colour:
-
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N128_Upper.png)
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N64_DN_Upper.png)
 
 
 
