@@ -2,7 +2,7 @@
 
 A DirectX 11/CUDA application that provides a basis for experimenting with path-tracing algorithms. The application loads a 3D polygon based mesh (Sponza) and allows the camera to be positioned using the mouse and WASD keys. There is a single light source that can also be positioned. There are two implementations of the algorithm, the first using the CPU/OpenMP, and the second using CUDA. I use [Intel's Open Image Denoise](https://www.openimagedenoise.org/index.html) for denosing the image.
 
-The goal was to write a simple test framework that would allow me to load a model, position a camera and light source and experiment with basic ray/path tracing algorithms. Having now done this I would perhaps implement it differently if I could start again (with the knowledge I now have). As such, a better source to learn about how to write a ray tracer in CUDA can be found [here](https://developer.nvidia.com/blog/accelerated-ray-tracing-cuda/).
+The goal was to write a simple test framework that would allow me to load a model, position a camera and light source and experiment with basic ray/path tracing algorithms. I wanted to figure out how to write a path-tracing application from scratch myself with as little guidance from existing sources on the assumption that I would learn more if I did this. This worked out quite well - I learnt a lot, but in many ways it is an example of how NOT to write a CUDA based path tracer. A better source to learn about how to write a path tracer in CUDA can be found [here](https://developer.nvidia.com/blog/accelerated-ray-tracing-cuda/). 
 
 ## Sample images
 
