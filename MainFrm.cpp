@@ -210,16 +210,19 @@ bool CMainFrame::Initialize()
 	dlg.DoModal();
 	gGlobalData->enMeshType = dlg.m_enMeshType;
 	bool bFlipTriangles = false;
-	CString strPath = strMeshPath + L"Sponza\\sponza.mesh";
+	CString strPath;
 	if (dlg.m_enMeshType == MeshType::MeshTypeCornelBox) {
-		strPath = strMeshPath + L"CornelBox\\CornellBox-Original.mesh";
+		strMeshPath.Append(L"CornelBox\\");
+		strPath = strMeshPath + L"CornellBox-Original.mesh";
 		bFlipTriangles = true;
 	}
-	else if (dlg.m_enMeshType == MeshType::MeshTypeCrytekSponza) {
-		strPath = strMeshPath + L"Sponzacrytek\\sponza.mesh";
+	else if (dlg.m_enMeshType == MeshType::MeshTypeCrytekSponza) { 
+		strMeshPath.Append(L"Sponzacrytek\\");
+		strPath = strMeshPath + L"sponza.mesh";
 	}
 	else if (dlg.m_enMeshType == MeshType::MeshTypeSponza) {
-		strPath = strMeshPath + L"Sponza\\sponza.mesh";
+		strMeshPath.Append(L"Sponza\\");
+		strPath = strMeshPath + L"sponza.mesh";
 	}  
  
 	TObjMesh objMesh;
@@ -227,8 +230,8 @@ bool CMainFrame::Initialize()
 
 	for (auto& m : objMesh.materials)//could use a map here, but...
 	{   
-		CString strMapKa = CA2T(m->map_Ka);
-		CString strMapKd = CA2T(m->map_Kd);
+		CString strMapKa = CA2T(strMeshPath + m->map_Ka);
+		CString strMapKd = CA2T(strMeshPath + m->map_Kd);
 		
 		CTexture txt;
 		txt.strPath = strMapKd;
