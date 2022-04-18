@@ -12,14 +12,15 @@ Crytek's Sponza model (64 samples + denoised)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/64_DN.png)
 
+64 samples - no denoising
+
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/64_no_denoising.png)
+
 No lighting (textures only)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/64_textures_only.png)
 
-Default Sponza model (128 samples - no denoising)
-
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Final2.png)
-
+Default Sponza model (128 samples)
 
 No lighting (textures only)         | Direct light only         |  Direct light and global illumination
 :-------------------------:|:-------------------------:|:-------------------------:
