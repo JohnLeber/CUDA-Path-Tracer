@@ -82,7 +82,7 @@ void CSideView::OnInitialUpdate()
 {
 	CFormView::OnInitialUpdate();
     gGlobalData->m_hSideWnd = m_hWnd;
-    SetDlgItemInt(IDC_SAMPLES, 8);
+    SetDlgItemInt(IDC_SAMPLES, 16);
     m_SunPos.SubclassDlgItem(IDC_SLIDER1, this);
     m_SunPos.SetRange(1, 2000);
     m_SunPos.SetPos(900);
@@ -90,6 +90,7 @@ void CSideView::OnInitialUpdate()
     m_Progress.SetRange(0, 100);
 
     CheckDlgButton(IDC_TOGGLE_MESH, BST_CHECKED);
+    CheckDlgButton(IDC_USE_TEXTURES, BST_CHECKED);
 
     CComboBox* pLighting = (CComboBox*)GetDlgItem(IDC_LIGHTING);
     long nItem = pLighting->AddString(L"Direct light only");
