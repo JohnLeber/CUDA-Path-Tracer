@@ -6,18 +6,20 @@ The goal was to write a simple test framework that would allow me to load a mode
 
 ## Sample images
 
-Default Sponza model (128 sample - no denoising)
-
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Final2.png)
-
-Using Crytek's Sponza model (400 samples - no denoising)
-
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/200GIb.png)
-
 Crytek's Sponza model (64 samples + denoised)
+
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/64_DN.png)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Image_N64_DN_Upper.png)
 
+Default Sponza model (128 samples - no denoising)
+
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Final2.png)
+
+
+No lighting (textures only)         | Direct light only         |  Direct light and global illumination
+:-------------------------:|:-------------------------:|:-------------------------:
+![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
 
 
 ## Instructions
@@ -36,12 +38,6 @@ Crytek's Sponza model (64 samples + denoised)
 5) Set the number of samples to something low (e.g. 8) for a low quality quick render, or to a higher value (e.g. 128) for a better quality render.
 6) Select CPU or CUDA if a CUDA device is present (see notes).
 7) Press the "Start Render" button and the progress bar should indicate progress. There is no cancel button other than CTRL-ALT-DEL...
-
-
-
-No lighting (textures only)         | Direct light only         |  Direct light and global illumination
-:-------------------------:|:-------------------------:|:-------------------------:
-![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/NoLighting.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Direct2.png) | ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/128Global2.png) 
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/Screenshot.png)
 
