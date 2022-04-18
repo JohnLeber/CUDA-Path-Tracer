@@ -63,7 +63,7 @@ No lighting (textures only)         | Direct light only         |  Direct light 
 ## A few potential improvements and flaws
 
 1) Most of the execution time is spent doing the triangle/ray and bounding box/ray intersection tests. Optimizing this with K-d trees or a similar technique would reduce render times which can be massive on models with lots of triangles.
-2) I have not looked at rendering the scene with multiple kernels in several passes. I suspect this would be more efficient rather than having one larger "uber-kernel". 
+2) I have not looked at rendering the scene with multiple kernels in several passes. I suspect this would be more efficient rather than having one large "uber-kernel". 
 3) There is aliasing in the texture sampling code (when the "Use textures" feature is enabled). Filtering, similar to how shader sampling use mipmap chains etc could be looked at. Also, interpolation between pixels.
 4) I have made no attempt to minimize/optimize instructions and branches in the CUDA code. There is also recursion in the CUDA code. This is a consequence of porting  the CPU code more-or-less directly to CUDA. A commercial GPU based ray-tracer, however, would not use recursion in practice.
 5) There is only one material (diffuse) and that is probably not implemented correctly. More sophisticated materials could be added once the above have been corrected/improved. I am not likely to have time to do this however...
