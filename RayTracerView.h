@@ -22,8 +22,8 @@ public:
 
 // Operations
 public:
-	void CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination);
-	void CalcRayCPU(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination);
+	void CalcRayCUDA(long nNumSamples, bool bUseTextures, bool bUseNormals, long nDiv, bool bGlobalIllumination);
+	void CalcRayCPU(long nNumSamples, bool bUseTextures, bool bUseNormals, long nDiv, bool bGlobalIllumination);
 	bool Init();
 
 	void SetSunPos(float nAngle);

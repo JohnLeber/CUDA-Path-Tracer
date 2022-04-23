@@ -77,6 +77,11 @@ CRayTracerView::~CRayTracerView()
 				delete[] i.m_pTexData;
 				i.m_pTexData = 0;
 			}
+			if (i.m_pNormalMapData)
+			{
+				delete[] i.m_pNormalMapData;
+				i.m_pNormalMapData = 0;
+			}
 		}
 		delete gGlobalData;
 		gGlobalData = 0;
@@ -775,7 +780,7 @@ void CRayTracerView::UpdateProgress(long nProgress, long nTotal)
 	//}
 }
 //-----------------------------------------------------------------------//
-void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination)
+void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, bool bUseNormals, long nDiv, bool bGlobalIllumination)
 {
 	if (nNumSamples < 1) nNumSamples = 1;
 	if (nNumSamples > 10000) nNumSamples = 10000; 
@@ -810,9 +815,8 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 	long nMatIndex = 0; 	
 	for (auto& m = gGlobalData->m_vTextures.begin(); m != gGlobalData->m_vTextures.end(); ++m)
 	{
-	 
 		if (m->nWidth != 0 && m->nHeight != 0) {
-			pMaterials[nMatIndex].pTexData = new float3[m->nWidth * m->nHeight];// i->m_pTexData
+			pMaterials[nMatIndex].pTexData = new float3[m->nWidth * m->nHeight];
 			for (int h = 0; h < m->nWidth; h++)
 			{
 				for (int j = 0; j < m->nHeight; j++)
@@ -822,6 +826,23 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 					pMaterials[nMatIndex].pTexData[j * m->nWidth + h].z = (float)LOBYTE(HIWORD(m->m_pTexData[j * m->nWidth + h]));
 				}
 			}
+			if (m->nNmlWidth != 0 && m->nNmlHeight != 0) {
+				pMaterials[nMatIndex].pNmlData = new float3[m->nNmlWidth * m->nNmlHeight];
+				for (int h = 0; h < m->nNmlWidth; h++)
+				{
+					for (int j = 0; j < m->nNmlHeight; j++)
+					{
+						float x = (float)LOBYTE(LOWORD(m->m_pNormalMapData[j * m->nNmlWidth + h]));
+						float y = (float)HIBYTE(LOWORD(m->m_pNormalMapData[j * m->nNmlWidth + h]));
+						float z = (float)LOBYTE(HIWORD(m->m_pNormalMapData[j * m->nNmlWidth + h]));
+						pMaterials[nMatIndex].pNmlData[j * m->nNmlWidth + h].x = x;
+						pMaterials[nMatIndex].pNmlData[j * m->nNmlWidth + h].y = y;
+						pMaterials[nMatIndex].pNmlData[j * m->nNmlWidth + h].z = z;
+					}
+				}
+			}
+			pMaterials[nMatIndex].nNmlWidth = m->nNmlWidth;
+			pMaterials[nMatIndex].nNmlHeight = m->nNmlHeight;
 			pMaterials[nMatIndex].nWidth = m->nWidth;
 			pMaterials[nMatIndex].nHeight = m->nHeight;
 			pMaterials[nMatIndex].diffuse = { m->diffuse.x, m->diffuse.y, m->diffuse.z };
@@ -832,6 +853,9 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 			pMaterials[nMatIndex].pTexData = 0;
 			pMaterials[nMatIndex].nWidth = 0;
 			pMaterials[nMatIndex].nHeight = 0;
+			pMaterials[nMatIndex].pNmlData = 0;
+			pMaterials[nMatIndex].nNmlWidth = 0;
+			pMaterials[nMatIndex].nNmlHeight = 0;
 			pMaterials[nMatIndex].diffuse = { m->diffuse.x, m->diffuse.y, m->diffuse.z };
 			m->pCUDAMaterial = &(pMaterials[nMatIndex]);
 		}
@@ -866,7 +890,8 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 
 	//////////////////////////////////////////////////////////////////////////////////////////
 	//Execute raytracing
-	PT.CalcRays(this, pOutput, m_nClientWidth, m_nClientHeight, nNumSamples, nDiv, P(0, 0), P(1, 1), toLocal.m, sunPos, sunDir, sunIntensity, bGlobalIllumination, bUseTextures, pVB, nNumMeshs, pMaterials, nNumMaterials);
+	PT.CalcRays(this, pOutput, m_nClientWidth, m_nClientHeight, nNumSamples, nDiv, P(0, 0), P(1, 1), toLocal.m, sunPos, sunDir, sunIntensity, 
+		bGlobalIllumination, bUseTextures, bUseNormals, pVB, nNumMeshs, pMaterials, nNumMaterials);
 	DWORD dwEnd = GetTickCount();
 	gGlobalData->m_bRendering = false;
 	//////////////////////////////////////////////////////////////////////////////////////////
@@ -875,6 +900,9 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 	{ 
 		if (pMaterials[h].pTexData)  {
 			delete[] pMaterials[h].pTexData;
+		}
+		if (pMaterials[h].pNmlData) {
+			delete[] pMaterials[h].pNmlData;
 		}
 	}
 	delete[] pMaterials;
@@ -917,7 +945,7 @@ void CRayTracerView::CalcRayCUDA(long nNumSamples, bool bUseTextures, long nDiv,
 	delete pImage;
 }
 //-----------------------------------------------------------------------//
-void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures, long nDiv, bool bGlobalIllumination)
+void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures, bool bUseNormals, long nDiv, bool bGlobalIllumination)
 {
 	if (nNumSamples < 1) nNumSamples = 1;
 	if (nNumSamples > 10000) nNumSamples = 10000;
@@ -949,7 +977,7 @@ void CRayTracerView::CalcRayCPU(long nNumSamples, bool bUseTextures, long nDiv, 
 
 	gGlobalData->m_bRendering = true;
 	CCPUPathTracer PT;
-	PT.CalcRays(this, pImageData, m_nClientWidth, m_nClientHeight, nDiv, nNumSamples, P(0, 0), P(1, 1), toLocal, m_Sun, bGlobalIllumination, bUseTextures);
+	PT.CalcRays(this, pImageData, m_nClientWidth, m_nClientHeight, nDiv, nNumSamples, P(0, 0), P(1, 1), toLocal, m_Sun, bGlobalIllumination, bUseTextures, bUseNormals);
 	gGlobalData->m_bRendering = false;
   
 	/*if (h == 0 && j == 0)

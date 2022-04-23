@@ -241,7 +241,8 @@ __device__ bool Intersect(CUDAMesh& mesh, float3& rayOrigin, float3& rayDir, flo
     return bHit;
 }
 //--------------------------------------------------------------------//
-__device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, float3& rayDir, bool bHitOnly, bool bUseTextures, float3& hitpoint, float3& nml, float3& rgb, float& nHitDist)
+__device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, float3& rayDir, bool bHitOnly, 
+    bool bUseTextures, float3& hitpoint, float3& nmlMesh, float3& nmlMap, float3& rgb, float& nHitDist)
 {
     float tmin = FLT_MAX;
     float u = 0;
@@ -249,6 +250,9 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
     long nTexWidth = 0;
     long nTexHeight = 0;
     float3* pTexData = 0;
+    long nNmlWidth = 0;
+    long nNmlHeight = 0;
+    float3* pNmlData = 0;
     float3 diffuse = {0, 0, 0};
     bool bHit = false;
     float dist = FLT_MAX;
@@ -259,7 +263,7 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
         }
         float ua = 0;
         float va = 0;  
-        if (!Intersect(pMesh[h], rayOrigin, rayDir, ua, va, dist, hitpoint, nml)) {
+        if (!Intersect(pMesh[h], rayOrigin, rayDir, ua, va, dist, hitpoint, nmlMesh)) {
             continue;
         }
         bHit = true;
@@ -268,8 +272,14 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
         nTexWidth = 0;
         nTexHeight = 0;
         pTexData = 0;
+        nNmlWidth = 0;
+        nNmlHeight = 0;
+        pNmlData = 0;
         if (pMesh[h].pMaterial)
         {
+            nNmlWidth = pMesh[h].pMaterial->nNmlWidth;
+            nNmlHeight = pMesh[h].pMaterial->nNmlHeight;
+            pNmlData = pMesh[h].pMaterial->pNmlData;
             nTexWidth = pMesh[h].pMaterial->nWidth;
             nTexHeight = pMesh[h].pMaterial->nHeight;
             pTexData = pMesh[h].pMaterial->pTexData;
@@ -286,15 +296,40 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
         while (u > 1) { u = u - 1; }
         while (v > 1) { v = v - 1; }
         while (u < 0) { u = u + 1; }
-        while (v < 0) { v = v + 1; }
+        while (v < 0) { v = v + 1; } 
+        if (pNmlData)
+        {
+            long j = nNmlWidth * v;
+            long h = nNmlHeight * u;
+            j = min(j, nNmlWidth - 1);
+            h = min(h, nNmlHeight - 1);
+            long nIndex = h * nNmlWidth + j;
+            //pBMPData[(NORM_DIM - h - 1) * NORM_DIM * 3 + j * 3 + 0] = 255 * (0.5 + 0.5 * normal.z);
+            //pBMPData[(NORM_DIM - h - 1) * NORM_DIM * 3 + j * 3 + 1] = 255 * (0.5 + 0.5 * -1 * normal.x);//invert green axis
+            //pBMPData[(NORM_DIM - h - 1) * NORM_DIM * 3 + j * 3 + 2] = 255 * (0.5 + 0.5 * normal.y);
+            //(R / 255 - 0.5) * 2
+            nmlMap.x =   2 * pNmlData[nIndex].z / 255.0f - 1;
+            nmlMap.y =  ( 2 * pNmlData[nIndex].x / 255.0f - 1);
+            nmlMap.z =   2 * pNmlData[nIndex].y / 255.0f - 1;
+            nmlMap = Vec3Norm(nmlMap);
+        }
+        else
+        { 
+            nmlMap = {0, 1, 0};
+        }
         long j = nTexWidth * v;
         long h = nTexHeight * u;
+        j = min(j, nTexWidth - 1);
+        h = min(h, nTexHeight - 1);
         if (!bUseTextures)
         {
             //gray/clay model
             rgb.x = 0.5f;
             rgb.y = 0.5f;
             rgb.z = 0.5f;
+           /* rgb.x = nmlMap.x;
+            rgb.y = nmlMap.y;
+            rgb.z = nmlMap.z;*/
         }
         else
         {
@@ -309,13 +344,17 @@ __device__ bool TraceRays(CUDAMesh* pMesh, long nNumMeshs, float3& rayOrigin, fl
                     rgb.x = (float)(pTexData[nIndex].x) / 255.0f;
                     rgb.y = (float)(pTexData[nIndex].y) / 255.0f;
                     rgb.z = (float)(pTexData[nIndex].z) / 255.0f;
-                }
+                }             
             }
             else
             {
                 rgb = diffuse;
             }
+
         }
+       /* rgb.x = nmlMap.x;
+        rgb.y = nmlMap.y;
+        rgb.z = nmlMap.z;*/
     }
     return bHit;
 }
@@ -332,10 +371,11 @@ __device__ float3 uniformSampleHemisphere(const float& r1, const float& r2)
 }
 //--------------------------------------------------------------------//
 __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long nNumMeshs, float3& rayOrigin, float3& rayDir, const int& depth, unsigned short* Xi, 
-    bool bGlobalIllumination, float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bUseTextures)
+    bool bGlobalIllumination, float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bUseTextures, bool bUseNormals)
 { 
     float3 rgb = { 0, 0, 0 };
-    float3 nml = { 0, 0, 0 };
+    float3 nmlMesh = { 0, 0, 0 }; 
+    float3 nmlMap = { 0, 1, 0 };
     float3 hitpoint = { 0, 0, 0 };
     if (depth > MAX_BOUNCES) return rgb;
     bool bHit = false;
@@ -344,14 +384,15 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
     float nHitDist = 0;
     float3 directLighting = { 0, 0, 0 };
     float3 indirectLighting = { 0, 0, 0 };
-    bHit = TraceRays(pVB, nNumMeshs, rayOrigin, rayDir, false, bUseTextures, hitpoint, nml, rgb, nHitDist);
+    bHit = TraceRays(pVB, nNumMeshs, rayOrigin, rayDir, false, bUseTextures, hitpoint, nmlMesh, nmlMap, rgb, nHitDist);
 
     if (bHit)
     {
         //assume diffuse material
 		//Direct light - cast shadow ray towards sun
         float3 hitPoint = hitpoint;
-        float3 hitNml = nml;
+        float3 hitNmlMesh = nmlMesh;
+        float3 hitNmlMap = nmlMap;
         float3 sunPos = nSunPos;
         float3 sunDir = Vec3Subtract(sunPos, hitPoint);// sunPos - hitPoint;
         sunDir = Vec3Norm(sunDir);
@@ -360,11 +401,27 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
         float3 hitsunnml = { 0, 0, 0 };
         float3 sunhitpoint = { 0, 0, 0 };
         float3 hitrgb = { 0, 0, 0 };
-        float3 rorigin = Vec3Add(hitPoint, Vec3MultScalar(hitNml, bias));
-        bHit = TraceRays(pVB, nNumMeshs, rorigin, sunDir, true, bUseTextures, sunhitpoint, hitsunnml, hitrgb, nHitDist);
+        float3 ignore = { 0, 0, 0 };
+        float3 ignore2 = { 0, 0, 0 };
+
+        float3 Nt = { 0, 0, 0 };
+        float3 Nb = { 0, 0, 0 };
+        CreateCoordinateSystem(hitNmlMesh, Nt, Nb);
+        if (bUseNormals)
+        {
+            //implement normal map
+            hitNmlMesh.x = hitNmlMap.x * Nb.x + hitNmlMap.y * hitNmlMesh.x + hitNmlMap.z * Nt.x;
+            hitNmlMesh.y = hitNmlMap.x * Nb.y + hitNmlMap.y * hitNmlMesh.y + hitNmlMap.z * Nt.y;
+            hitNmlMesh.z = hitNmlMap.x * Nb.z + hitNmlMap.y * hitNmlMesh.z + hitNmlMap.z * Nt.z;
+            hitNmlMesh = Vec3Norm(hitNmlMesh);
+            CreateCoordinateSystem(hitNmlMesh, Nt, Nb);
+        }
+
+        float3 rorigin = Vec3Add(hitPoint, Vec3MultScalar(hitNmlMesh, bias));
+        bHit = TraceRays(pVB, nNumMeshs, rorigin, sunDir, true, bUseTextures, ignore2, hitsunnml, ignore, hitrgb, nHitDist);
         if (!bHit)
         { 
-            float dp = Vec3Dot(hitNml, sunDir);
+            float dp = Vec3Dot(hitNmlMesh, sunDir);
             directLighting.x = nSunIntensity * max(0.0f, dp);
             directLighting.y = nSunIntensity * max(0.0f, dp);
             directLighting.z = nSunIntensity * max(0.0f, dp);
@@ -373,9 +430,7 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
         {
             //https://www.scratchapixel.com/code.php?id=34&origin=/lessons/3d-basic-rendering/global-illumination-path-tracing
             int N = nNumSamples;
-            float3 Nt = { 0, 0, 0 };
-            float3 Nb = { 0, 0, 0 }; 
-            CreateCoordinateSystem(hitNml, Nt, Nb);
+            
             float pdf = 1 / (2 * M_PI);
             for (int n = 0; n < N; ++n) {
                 float r1 = curand_uniform(&s);
@@ -383,14 +438,14 @@ __device__ float3 Radiance(long nNumSamples, curandState& s, CUDAMesh* pVB, long
                 float3 sample = uniformSampleHemisphere(r1, r2);
                 float3 sampleWorld = 
                 {
-                    sample.x * Nb.x + sample.y * hitNml.x + sample.z * Nt.x,
-                    sample.x * Nb.y + sample.y * hitNml.y + sample.z * Nt.y,
-                    sample.x * Nb.z + sample.y * hitNml.z + sample.z * Nt.z 
+                    sample.x * Nb.x + sample.y * hitNmlMesh.x + sample.z * Nt.x,
+                    sample.x * Nb.y + sample.y * hitNmlMesh.y + sample.z * Nt.y,
+                    sample.x * Nb.z + sample.y * hitNmlMesh.z + sample.z * Nt.z
                 };
                 float3 ray = Vec3Add(hitPoint, Vec3MultScalar(sampleWorld, bias));
                 //set number of samples to 1 for 2nd, 4rd... bounces
                 float3 rd = Radiance(1, s, pVB, nNumMeshs, ray, sampleWorld,
-                    depth + 1, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity, bUseTextures);
+                                     depth + 1, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity, bUseTextures, bUseNormals);
                 indirectLighting.x = indirectLighting.x + r1 * rd.x / pdf;
                 indirectLighting.y = indirectLighting.y + r1 * rd.y / pdf;
                 indirectLighting.z = indirectLighting.z + r1 * rd.z / pdf; 
@@ -444,7 +499,7 @@ void CCUDAPathTracer::CopyMesh(CUDAMesh* pDst, CUDAMesh* pSrc, thrust::host_vect
 }
 //--------------------------------------------------------------------//
 __global__ void PTKernel(volatile int* progress, float3* pOutout, long nClientWidth, long nClientHeight, long nNumSamples, long nDiv, float P0, float P1, float* pToLocal,
-    float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, bool bUseTextures, CUDAMesh* pVB, long nNumMeshs)
+    float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, bool bUseTextures, bool bUseNormals, CUDAMesh* pVB, long nNumMeshs)
 {
     int threadsPerBlock = blockDim.x * blockDim.y * blockDim.z;
     int threadPosInBlock = threadIdx.x +
@@ -484,7 +539,7 @@ __global__ void PTKernel(volatile int* progress, float3* pOutout, long nClientWi
         rayDir = Vec3Norm(rayDir);
         unsigned short Xi[3] = { 0, 0, (short)j * (short)j * (short)j }; // *** Moved outside for VS2012
         int depth = 0;
-        float3 rgb = Radiance(nNumSamples, s, pVB, nNumMeshs, rayOrigin, rayDir, depth, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity, bUseTextures);
+        float3 rgb = Radiance(nNumSamples, s, pVB, nNumMeshs, rayOrigin, rayDir, depth, Xi, bGlobalIllumination, nSunPos, nSunDir, nSunIntensity, bUseTextures, bUseNormals);
 
         atomicAdd((int*)progress, 1);//increment the progress count that will be propagated back to the progress bar in the UI
 
@@ -499,7 +554,7 @@ __global__ void PTKernel(volatile int* progress, float3* pOutout, long nClientWi
 }
 //--------------------------------------------------------------------//
 void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, long nClientWidth, long nClientHeight, long nNumSamples, long nDiv, float P0, float P1, float ToLocal[4][4],
-                           float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, bool bUseTextures, CUDAMesh* pVB, long nNumMeshs, CUDAMaterial* pMaterials, long nNumMaterials)
+                           float3 nSunPos, float3 nSunDir, float nSunIntensity, bool bGlobalIllumination, bool bUseTextures, bool bUseNormals, CUDAMesh* pVB, long nNumMeshs, CUDAMaterial* pMaterials, long nNumMaterials)
 {
     long nWidth = nClientWidth / nDiv;
     long nHeight = nClientHeight / nDiv;
@@ -547,14 +602,27 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
                 goto Error;
             }
             
+            float3* pNmlData = 0;
+            cudaStatus = cudaMalloc((void**)&pNmlData, pMaterials[h].nNmlWidth * pMaterials[h].nNmlHeight * sizeof(float3));
+            if (cudaStatus != cudaSuccess) {
+                fprintf(stderr, "cudaMalloc failed!");
+                goto Error;
+            }
+
+            cudaStatus = cudaMemcpy(&pCUDAMaterials[h].nNmlWidth, &pMaterials[h].nNmlWidth, sizeof(long), cudaMemcpyHostToDevice);
+            cudaStatus = cudaMemcpy(&pCUDAMaterials[h].nNmlHeight, &pMaterials[h].nNmlHeight, sizeof(long), cudaMemcpyHostToDevice);
+            cudaStatus = cudaMemcpy(pNmlData, pMaterials[h].pNmlData, pMaterials[h].nNmlWidth * pMaterials[h].nNmlHeight * sizeof(float3), cudaMemcpyHostToDevice);
+
             cudaStatus = cudaMemcpy(&pCUDAMaterials[h].nWidth, &pMaterials[h].nWidth, sizeof(long), cudaMemcpyHostToDevice);
             cudaStatus = cudaMemcpy(&pCUDAMaterials[h].nHeight, &pMaterials[h].nHeight, sizeof(long), cudaMemcpyHostToDevice);
             cudaStatus = cudaMemcpy(pTexData, pMaterials[h].pTexData, pMaterials[h].nWidth * pMaterials[h].nHeight * sizeof(float3), cudaMemcpyHostToDevice);
+
             cudaStatus = cudaMemcpy(&pCUDAMaterials[h].diffuse, &pMaterials[h].diffuse, sizeof(float3), cudaMemcpyHostToDevice);
             cudaStatus = cudaMemcpy(&(pCUDAMaterials[h].pTexData), &pTexData, sizeof(float3*), cudaMemcpyHostToDevice);
-            //cudaStatus = cudaMemcpy(&(pDst->pMesh), &(pChildMesh), sizeof(CUDAMesh*), cudaMemcpyHostToDevice);//cleanup pointer
+            cudaStatus = cudaMemcpy(&(pCUDAMaterials[h].pNmlData), &pNmlData, sizeof(float3*), cudaMemcpyHostToDevice);
        
             vTextures.push_back(pTexData);//store in a vector so we can delete them later
+            vTextures.push_back(pNmlData);//store in a vector so we can delete them later
         }
     }
     
@@ -633,7 +701,8 @@ void CCUDAPathTracer::CalcRays(CPTCallback* pCallback, float3* pOutputImage, lon
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     //The Kernel
-    PTKernel << <block, threads >> > (d_progress, pCUDAOutputImage, nClientWidth, nClientHeight, nNumSamples, nDiv, P0, P1, pToLocal, nSunPos, nSunDir, nSunIntensity, bGlobalIllumination, bUseTextures, pCUDAVB, nNumMeshs);
+    PTKernel << <block, threads >> > (d_progress, pCUDAOutputImage, nClientWidth, nClientHeight, nNumSamples,
+        nDiv, P0, P1, pToLocal, nSunPos, nSunDir, nSunIntensity, bGlobalIllumination, bUseTextures, bUseNormals, pCUDAVB, nNumMeshs);
 
     cudaEventRecord(stop);
   

@@ -192,15 +192,10 @@ bool CMesh::DEBUGIntersectRayTriangle(DirectX::XMVECTOR rayOrigin2, DirectX::XMV
 	return true;
 }
 //-----------------------------------------------------------------------//
-bool CMesh::Intersect(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, float& u, float& v, float& dist, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml)
+bool CMesh::Intersect(const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, float& u, float& v, float& dist, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml)
 {
 	float dist2 = 0;
 	float3 rayOrigin2 = {};
-
-	/*if (!DEBUGIntersectRayAxisAlignedBox(rayOrigin, rayDir, bbmax, bbmin))
-	{
-		return false;
-	}*/
 
 	if (!XNA::IntersectRayAxisAlignedBox(rayOrigin, rayDir, &boundingbox, &dist2))
 	{
@@ -228,8 +223,8 @@ bool CMesh::Intersect(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, f
 		DirectX::XMVECTOR v1 = XMLoadFloat3(&vTriangles[3 * k + 0].pos);
 		DirectX::XMVECTOR v2 = XMLoadFloat3(&vTriangles[3 * k + 1].pos);
 		DirectX::XMVECTOR v3 = XMLoadFloat3(&vTriangles[3 * k + 2].pos);
-		if (DEBUGIntersectRayTriangle(rayOrigin, rayDir, v1, v2, v3, &t, &ua, &va))
-			//if (XNA::IntersectRayTriangle(rayOrigin, rayDir, v1, v2, v3, &t, &ua, &va))
+		//if (DEBUGIntersectRayTriangle(rayOrigin, rayDir, v1, v2, v3, &t, &ua, &va))
+		if (XNA::IntersectRayTriangle(rayOrigin, rayDir, v1, v2, v3, &t, &ua, &va))
 		{
 			if (t < dist) {
 				dist = t;
@@ -240,9 +235,11 @@ bool CMesh::Intersect(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, f
 				hitpoint.y = (1 - ua - va) * vTriangles[3 * k + 0].pos.y + ua * vTriangles[3 * k + 1].pos.y + va * vTriangles[3 * k + 2].pos.y;
 				hitpoint.z = (1 - ua - va) * vTriangles[3 * k + 0].pos.z + ua * vTriangles[3 * k + 1].pos.z + va * vTriangles[3 * k + 2].pos.z;
 
+				//take normal to be the average of all vertices on the triangle.
 				nml.x = (vTriangles[3 * k + 0].normal.x + vTriangles[3 * k + 1].normal.x + vTriangles[3 * k + 2].normal.x) / 3;
 				nml.y = (vTriangles[3 * k + 0].normal.y + vTriangles[3 * k + 1].normal.y + vTriangles[3 * k + 2].normal.y) / 3;
 				nml.z = (vTriangles[3 * k + 0].normal.z + vTriangles[3 * k + 1].normal.z + vTriangles[3 * k + 2].normal.z) / 3;
+
 				DirectX::XMStoreFloat3(&nml, XMVector3Normalize(XMLoadFloat3(&nml)));
 				bHit = true;
 			}
@@ -251,14 +248,18 @@ bool CMesh::Intersect(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, f
 	return bHit;
 }
 //-----------------------------------------------------------------------//
-bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, bool bHitOnly, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml, DirectX::XMFLOAT3& rgb, float& nHitDist)
+bool CCPUPathTracer::Trace(bool bUseTextures, const DirectX::XMVECTOR& rayOrigin, const DirectX::XMVECTOR& rayDir, bool bHitOnly,
+	DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nmlMesh, DirectX::XMFLOAT3& nmlMap, DirectX::XMFLOAT3& rgb, float& nHitDist)
 {
 	float tmin = MathHelper::Infinity;
 	float u = 0;
 	float v = 0;
 	long nTexWidth = 0;
 	long nTexHeight = 0;
+	long nNmlWidth = 0;
+	long nNmlHeight = 0;
 	DWORD* pTexData = 0;
+	DWORD* pNmlData = 0;
 	bool bHit = false;
 	float dist = MathHelper::Infinity;
 	DirectX::XMFLOAT3 diffuse = {0, 0, 0};
@@ -267,7 +268,7 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 		if (m.bLight) continue;
 		float ua = 0;
 		float va = 0;
-		if (!m.Intersect(rayOrigin, rayDir, ua, va, dist, hitpoint, nml)) {
+		if (!m.Intersect(rayOrigin, rayDir, ua, va, dist, hitpoint, nmlMesh)) {
 			continue;
 		}
 		bHit = true;
@@ -277,12 +278,14 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 		nTexWidth = m.nWidth;
 		nTexHeight = m.nHeight;
 		pTexData = m.m_pTexData;
+		pNmlData = m.m_pNmlData;
+		nNmlWidth = m.nNmlWidth;
+		nNmlHeight = m.nNmlHeight;
 		diffuse = m.diffuse;
 	}
 	if (bHit)
 	{
-		if (bHitOnly) return true;
-
+		if (bHitOnly) return true; 
 		//Get surface properties (texture and uv...).
 		/*if (v >= 1) { v = fmod(v, 1); }
 		if (u >= 1) { u = fmod(u, 1); }*/
@@ -292,14 +295,38 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 		while (v < 0) { v = v + 1; }
 		long j = nTexWidth * v;
 		long h = nTexHeight * u;
+		j = min(j, nTexWidth - 1);
+		h = min(h, nTexHeight - 1);
+		
+		if (pNmlData)
+		{
+			long j = nNmlWidth * v;
+			long h = nNmlHeight * u;
+			j = min(j, nNmlWidth - 1);
+			h = min(h, nNmlHeight - 1);
+			
+			DWORD dwNormal = pNmlData[h * nNmlWidth + j];
+			//pBMPData[(NORM_DIM - h - 1) * NORM_DIM * 3 + j * 3 + 0] = 255 * (0.5 + 0.5 * normal.z);
+			//pBMPData[(NORM_DIM - h - 1) * NORM_DIM * 3 + j * 3 + 1] = 255 * (0.5 + 0.5 * -1 * normal.x);//invert green axis
+			//pBMPData[(NORM_DIM - h - 1) * NORM_DIM * 3 + j * 3 + 2] = 255 * (0.5 + 0.5 * normal.y);
+			float x = (float)(LOBYTE(LOWORD(dwNormal)));//green
+			float y = (float)(HIBYTE(LOWORD(dwNormal)));//blue
+			float z = (float)(LOBYTE(HIWORD(dwNormal)));//ref
+			nmlMap.x = 2 * z / 255.0f - 1;
+			nmlMap.y = (2 * x / 255.0f - 1);
+			nmlMap.z = 2 * y / 255.0f - 1;
+		}
+
 		if (!bUseTextures)
 		{//gray/clay model
 			rgb.x = 0.5f;
 			rgb.y = 0.5f;
 			rgb.z = 0.5f;
+ 
 		}
 		else
-		{//use the textures
+		{
+			//use the textures
 			if (pTexData && nTexWidth > 0) {
 				DWORD dwPixel = pTexData[h * nTexWidth + j];
 				rgb.x = (float)(LOBYTE(LOWORD(dwPixel))) / 255.0f;
@@ -318,11 +345,14 @@ bool CCPUPathTracer::Trace(bool bUseTextures, DirectX::XMVECTOR& rayOrigin, Dire
 std::default_random_engine generator;
 std::uniform_real_distribution<float> distribution(0, 1);
 //-----------------------------------------------------------------------//
-DirectX::XMFLOAT3 CCPUPathTracer::Radiance(CLight& sun, bool bGlobalIllumination, long nNumSamples, bool bUseTextures, DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, const int& depth, unsigned short* Xi)
+DirectX::XMFLOAT3 CCPUPathTracer::Radiance(CLight& sun, bool bGlobalIllumination, long nNumSamples, bool bUseTextures, bool bUseNormals,
+											DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, 
+											const int& depth, unsigned short* Xi)
 {
 	//CMesh meshhit;
 	DirectX::XMFLOAT3 rgb = { 0, 0, 0 };
-	DirectX::XMFLOAT3 nml = { 0, 0, 0 };
+	DirectX::XMFLOAT3 nmlMesh = { 0, 0, 0 };
+	DirectX::XMFLOAT3 nmlMap = { 0, 1, 0 };
 	DirectX::XMFLOAT3 hitpoint = { 0, 0, 0 };
 	if (depth > MAX_BOUNCES) return rgb;
 	bool bHit = false;
@@ -332,61 +362,73 @@ DirectX::XMFLOAT3 CCPUPathTracer::Radiance(CLight& sun, bool bGlobalIllumination
 	DirectX::XMFLOAT3 directLighting = { 0, 0, 0 };
 	DirectX::XMFLOAT3 indirectLighting = { 0, 0, 0 };
 
-	bHit = Trace(bUseTextures, rayOrigin, rayDir, false, hitpoint, nml, rgb, nHitDist);
+	bHit = Trace(bUseTextures, rayOrigin, rayDir, false, hitpoint, nmlMesh, nmlMap, rgb, nHitDist);
 	if (bHit)
 	{
 		//assume diffuse material
 		//Direct light - cast shadow ray towards sun
 		DirectX::XMVECTOR hitPoint = XMLoadFloat3(&hitpoint);
-		DirectX::XMVECTOR hitNml = XMLoadFloat3(&nml);
+		DirectX::XMVECTOR hitNmlMesh = XMLoadFloat3(&nmlMesh);
+		DirectX::XMVECTOR hitNmlMap = XMLoadFloat3(&nmlMap);
 		DirectX::XMVECTOR sunPos = XMLoadFloat3(&sun.pos);
 		DirectX::XMVECTOR sunDir = sunPos - hitPoint;
 		sunDir = XMVector3Normalize(sunDir);
 
 		float bias = 0.01f;
 		DirectX::XMFLOAT3 hitsunnml = { 0, 0, 0 };
-		DirectX::XMFLOAT3 sunhitpoint = { 0, 0, 0 };
+		DirectX::XMFLOAT3 ignore2 = { 0, 0, 0 };
+		DirectX::XMFLOAT3 ignore = { 0, 0, 0 };
 		DirectX::XMFLOAT3 hitrgb = { 0, 0, 0 };
-		bHit = Trace(bUseTextures, hitPoint + bias * hitNml, sunDir, true, sunhitpoint, hitsunnml, hitrgb, nHitDist);
+
+		DirectX::XMFLOAT3 Nt;
+		DirectX::XMFLOAT3 Nb;
+		DirectX::XMFLOAT3 hitNormalMesh = { 0, 0, 0 };
+		XMStoreFloat3(&hitNormalMesh, hitNmlMesh);
+		DirectX::XMFLOAT3 hitNormalMap = { 0, 0, 0 };
+		XMStoreFloat3(&hitNormalMap, hitNmlMap);
+		CreateCoordinateSystem(hitNmlMesh, Nt, Nb);
+		if (bUseNormals)
+		{
+			//implement normal map
+			hitNormalMesh = DirectX::XMFLOAT3(
+				hitNormalMap.x * Nb.x + hitNormalMap.y * hitNormalMesh.x + hitNormalMap.z * Nt.x,
+				hitNormalMap.x * Nb.y + hitNormalMap.y * hitNormalMesh.y + hitNormalMap.z * Nt.y,
+				hitNormalMap.x * Nb.z + hitNormalMap.y * hitNormalMesh.z + hitNormalMap.z * Nt.z);
+			DirectX::XMStoreFloat3(&hitNormalMesh, XMVector3Normalize(XMLoadFloat3(&hitNormalMesh)));
+			hitNmlMesh = DirectX::XMLoadFloat3(&hitNormalMesh);
+			CreateCoordinateSystem(hitNmlMesh, Nt, Nb);
+		} 
+
+		bHit = Trace(bUseTextures, hitPoint + bias * hitNmlMesh, sunDir, true, ignore2, hitsunnml, ignore, hitrgb, nHitDist);
 		if (!bHit)
 		{
 			DirectX::XMFLOAT3 dp = { 0,0,0 };
-			//the sun is a distance light, so lets not divide by sqrt(r*r) and 4/pi/r2 etc
-			XMStoreFloat3(&dp, DirectX::XMVector3Dot(hitNml, sunDir));
+			XMStoreFloat3(&dp, DirectX::XMVector3Dot(hitNmlMesh, sunDir));
 			directLighting.x = sun.nIntensity * max(0.0f, dp.x);
 			directLighting.y = sun.nIntensity * max(0.0f, dp.y);
 			directLighting.z = sun.nIntensity * max(0.0f, dp.z);
-
 		}
 		//https://www.scratchapixel.com/code.php?id=34&origin=/lessons/3d-basic-rendering/global-illumination-path-tracing&src=0
 		if (bGlobalIllumination)
 		{
 			uint32_t N = nNumSamples;
-			DirectX::XMFLOAT3 Nt;
-			DirectX::XMFLOAT3 Nb;
-			DirectX::XMFLOAT3 hitNormal = { 0, 0, 0 };
-			XMStoreFloat3(&hitNormal, hitNml);
-			CreateCoordinateSystem(hitNml, Nt, Nb);
-
+  
 			float pdf = 1 / (2 * M_PI);
 			for (uint32_t n = 0; n < N; ++n) {
 				float r1 = distribution(generator);
 				float r2 = distribution(generator);
 				DirectX::XMFLOAT3 sample = uniformSampleHemisphere(r1, r2);
 				DirectX::XMFLOAT3 sampleWorldF(
-					sample.x * Nb.x + sample.y * hitNormal.x + sample.z * Nt.x,
-					sample.x * Nb.y + sample.y * hitNormal.y + sample.z * Nt.y,
-					sample.x * Nb.z + sample.y * hitNormal.z + sample.z * Nt.z);
+					sample.x * Nb.x + sample.y * hitNormalMesh.x + sample.z * Nt.x,
+					sample.x * Nb.y + sample.y * hitNormalMesh.y + sample.z * Nt.y,
+					sample.x * Nb.z + sample.y * hitNormalMesh.z + sample.z * Nt.z
+				);
 				DirectX::XMVECTOR sampleWorld = DirectX::XMLoadFloat3(&sampleWorldF);
-				//set number of samples to 1 for 2nd, 4rd... bounces
-				DirectX::XMFLOAT3 rd = Radiance(sun, bGlobalIllumination, 1, bUseTextures, hitPoint + bias * sampleWorld, sampleWorld, depth + 1, Xi);
+				//set number of samples to 1 for 2nd, 3rd... bounces
+				DirectX::XMFLOAT3 rd = Radiance(sun, bGlobalIllumination, 1, bUseTextures, bUseNormals, hitPoint + bias * sampleWorld, sampleWorld, depth + 1, Xi);
 				indirectLighting.x = indirectLighting.x + r1 * rd.x / pdf;
 				indirectLighting.y = indirectLighting.y + r1 * rd.y / pdf;
 				indirectLighting.z = indirectLighting.z + r1 * rd.z / pdf;
-				if (indirectLighting.x > 0.001)
-				{
-					long nStop = 0;
-				} 
 			}
 			indirectLighting.x = indirectLighting.x / N;
 			indirectLighting.y = indirectLighting.y / N;
@@ -429,15 +471,16 @@ void CCPUPathTracer::CreateCoordinateSystem(const DirectX::XMVECTOR& N2, DirectX
 	XMStoreFloat3(&Nb, DirectX::XMVector3Cross(XMLoadFloat3(&N), Nt));
 }
 //-----------------------------------------------------------------------//
-void CCPUPathTracer::CalcRays(CPTCallback* pCallback, DWORD* pImageData, long nClientWidth, long nClientHeight, long nDiv, long nNumSamples, float P0, float P1, DirectX::XMMATRIX toLocal,
-								CLight sun, bool bGlobalIllumination, bool bUseTextures)
+void CCPUPathTracer::CalcRays(CPTCallback* pCallback, DWORD* pImageData, long nClientWidth, long nClientHeight, long nDiv, long nNumSamples, 
+								float P0, float P1, DirectX::XMMATRIX toLocal,
+								CLight sun, bool bGlobalIllumination, bool bUseTextures, bool bUseNormals)
 { 
 	long nImageWidth = nClientWidth / nDiv;
 	long nImageHeight = nClientHeight / nDiv;
 	long nProgress = 0;//used to update progressbar
 
 omp_set_num_threads(16);
-#pragma omp parallel for
+//#pragma omp parallel for
 	for (int j = 0; j < nImageWidth; ++j) {
 		unsigned short Xi[3] = { 0 ,0, j * j * j }; // *** Moved outside for VS2012
 		for (int h = 0; h < nImageHeight; ++h) {
@@ -460,7 +503,7 @@ omp_set_num_threads(16);
 			DirectX::XMStoreFloat3(&origin, rayOrigin);
 
 			int depth = 0;
-			DirectX::XMFLOAT3 rgb = Radiance(sun, bGlobalIllumination, nNumSamples, bUseTextures, rayOrigin, rayDir, depth, Xi);
+			DirectX::XMFLOAT3 rgb = Radiance(sun, bGlobalIllumination, nNumSamples, bUseTextures, bUseNormals, rayOrigin, rayDir, depth, Xi);
 
 			if (pCallback) pCallback->UpdateProgress(nProgress++, nImageWidth * nImageHeight);
 			pImageData[h * nImageWidth + j] = MAKELONG(MAKEWORD(rgb.x * 255, rgb.y * 255), MAKEWORD(rgb.z * 255, 255));

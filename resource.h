@@ -22,6 +22,8 @@
 #define IDC_USE_TEXTURES                1008
 #define IDC_SAMPLES                     1009
 #define IDC_BORDER                      1010
+#define IDC_USE_TEXTURES2               1010
+#define IDC_USE_NORMALS                 1010
 #define IDC_PROGRESS1                   1011
 #define IDC_DURATION                    1012
 #define IDC_LIGHTING                    1013

@@ -232,10 +232,20 @@ bool CMainFrame::Initialize()
 	{   
 		CString strMapKa = CA2T(strMeshPath + m->map_Ka);
 		CString strMapKd = CA2T(strMeshPath + m->map_Kd);
+
+		CString strNormalMap = CA2T(strMeshPath + m->map_Bump);
+
 		
+		char map_Ns[MAX_PATH]; // Specular power texture file name.
+		char map_Tr[MAX_PATH]; // Transparency texture file name.
+		char map_Disp[MAX_PATH]; // Displacement map.
+		char map_Bump[MAX_PATH]; // Bump map.
+		char map_Refl[MAX_PATH]; // Reflection map.
+
 		CTexture txt;
 		txt.strPath = strMapKd;
 		txt.diffuse = { m->Kd[2], m->Kd[1], m->Kd[0] };
+		txt.strNormalPath = strNormalMap; //L"C:\\Users\\user\\source\\repos\\RayTracer\\Meshes\\Sponzacrytek\\sponza_arch_ddn.png";// strNormalMap;
 		if (strMapKd != L"")
 		{
 			ID3D11Resource* texResource = nullptr;
@@ -258,6 +268,27 @@ bool CMainFrame::Initialize()
 							);
 						}
 					} 
+				}
+				
+				//load normal map if there is one
+				CImage imageNml;
+				if (SUCCEEDED(imageNml.Load(strNormalMap)))
+				{
+					txt.nNmlWidth = imageNml.GetWidth();
+					txt.nNmlHeight = imageNml.GetHeight();
+					BYTE* pArray = (BYTE*)imageNml.GetBits();
+					int nPitch = imageNml.GetPitch();
+					int nBitCount = imageNml.GetBPP() / 8;
+					txt.m_pNormalMapData = new DWORD[txt.nNmlWidth * txt.nNmlHeight];
+					for (int h = 0; h < txt.nNmlWidth; h++) {
+						for (int j = 0; j < txt.nNmlHeight; j++) {
+							txt.m_pNormalMapData[j * txt.nNmlWidth + h] = MAKELONG(
+								MAKEWORD(*(pArray + nPitch * j + h * nBitCount + 0), *(pArray + nPitch * j + h * nBitCount + 1)),
+								MAKEWORD(*(pArray + nPitch * j + h * nBitCount + 2), 255)
+							);
+							//txt.m_pNormalMapData[j * txt.nNmlWidth + h] = txt.m_pTexData[j * txt.nWidth + h];
+						}
+					}
 				}
 				txt.strName = CA2T(m->name);
 				gGlobalData->m_vTextures.push_back(txt);
@@ -416,6 +447,9 @@ bool CMainFrame::Initialize()
 				mesh.m_pTexData = mt.m_pTexData;
 				mesh.nWidth = mt.nWidth;
 				mesh.nHeight = mt.nHeight;
+				mesh.m_pNmlData = mt.m_pNormalMapData;
+				mesh.nNmlWidth = mt.nNmlWidth;
+				mesh.nNmlHeight = mt.nNmlHeight;
 				mesh.diffuse = mt.diffuse;
 				bFoundmat = true;
 				break;

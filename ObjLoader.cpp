@@ -166,7 +166,9 @@ INT LoadMtlLib(LPCTSTR sFileName, std::vector<TObjMaterial*>& materials)
 		else if (0 == _strnicmp("map_Ka ", buffer, 7))	sscanf(buffer + 7, "%s", pMat->map_Ka);
 		else if (0 == _strnicmp("map_Kd ", buffer, 7))	sscanf(buffer + 7, "%s", pMat->map_Kd);
 		else if (0 == _strnicmp("map_Ks ", buffer, 7))	sscanf(buffer + 7, "%s", pMat->map_Ks);
-		else if (0 == _strnicmp("map_Ns ", buffer, 7))	sscanf(buffer + 7, "%s", pMat->map_Ns);
+		else if (0 == _strnicmp("map_Ns ", buffer, 7)) {
+			sscanf(buffer + 7, "%s", pMat->map_Ns);
+		}
 		else if (0 == _strnicmp("map_Tr ", buffer, 7))	sscanf(buffer + 7, "%s", pMat->map_Tr);
 		else if (0 == _strnicmp("map_Disp ", buffer, 7))	sscanf(buffer + 9, "%s", pMat->map_Disp);
 		else if (0 == _strnicmp("map_Bump ", buffer, 7))	sscanf(buffer + 9, "%s", pMat->map_Bump);

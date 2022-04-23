@@ -74,9 +74,13 @@ struct CTexture
 {
 	CString strName;
 	CString strPath;
+	CString strNormalPath;
 	DWORD* m_pTexData = 0;//pointer to RGBA bytes
 	LONG nWidth = 0;
 	LONG nHeight = 0;
+	DWORD* m_pNormalMapData = 0;
+	LONG nNmlWidth = 0;
+	LONG nNmlHeight = 0;	
 	DirectX::XMFLOAT3 diffuse = {0 ,0 ,0 };//when there is no texturemap e.g. cornel box
 	ID3D11ShaderResourceView* mDiffuseMapSRV = 0;
 	CUDAMaterial* pCUDAMaterial = 0;
@@ -116,7 +120,7 @@ struct CMesh
 	bool DEBUGIntersectRayAxisAlignedBox(DirectX::XMVECTOR& rayOrigin, DirectX::XMVECTOR& rayDir, DirectX::XMFLOAT3& bbmax, DirectX::XMFLOAT3& bbmin);
 	bool DEBUGIntersectRayTriangle(DirectX::XMVECTOR rayOrigin, DirectX::XMVECTOR rayDir, DirectX::XMVECTOR v0, DirectX::XMVECTOR v1, DirectX::XMVECTOR v2, float* pDist, float* pU, float* pV);
 
-	bool Intersect(DirectX::XMVECTOR& origin, DirectX::XMVECTOR& dir, float& u, float& v, float& dist, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml);
+	bool Intersect(const DirectX::XMVECTOR& origin, const DirectX::XMVECTOR& dir, float& u, float& v, float& dist, DirectX::XMFLOAT3& hitpoint, DirectX::XMFLOAT3& nml);
 	
 	void AddTriangle(VBVertex& v1, VBVertex& v2, VBVertex& v3);
 	//std::vector<VBVertex> vTriangles;
@@ -126,6 +130,9 @@ struct CMesh
 	DWORD* m_pTexData = 0;//pointer to RGBA bytes
 	LONG nWidth = 0;
 	LONG nHeight = 0;
+	DWORD* m_pNmlData = 0;
+	LONG nNmlWidth = 0;
+	LONG nNmlHeight = 0;
 	DirectX::XMFLOAT3 diffuse = {0, 0, 0};
 
 	DirectX::XMFLOAT3 bbmin, bbmax; // bounding box.

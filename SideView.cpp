@@ -146,6 +146,7 @@ void CSideView::OnBnClickedCalcRay()
     CWaitCursor wait;
     long nNumSamples = GetDlgItemInt(IDC_SAMPLES);
     bool bUseTextures = IsDlgButtonChecked(IDC_USE_TEXTURES) == BST_CHECKED;
+    bool bUseNormals = IsDlgButtonChecked(IDC_USE_NORMALS) == BST_CHECKED;
     
     CComboBox* pDiv = (CComboBox*)GetDlgItem(IDC_DIV);
     float nDiv = pDiv->GetItemData(pDiv->GetCurSel());//divide image by this ammount to reduce computations...
@@ -155,10 +156,10 @@ void CSideView::OnBnClickedCalcRay()
 
     CComboBox* pEngine = (CComboBox*)GetDlgItem(IDC_ENGINE);
     if (pEngine->GetItemData(pEngine->GetCurSel()) == 1) {
-        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCUDA(nNumSamples, bUseTextures, nDiv, bGlobalIllumination);//Use CUDA
+        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCUDA(nNumSamples, bUseTextures, bUseNormals, nDiv, bGlobalIllumination);//Use CUDA
     }
     else   {
-        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCPU(nNumSamples, bUseTextures, nDiv, bGlobalIllumination);//CPU/OpenMP
+        ((CMainFrame*)AfxGetMainWnd())->GetRightPane()->CalcRayCPU(nNumSamples, bUseTextures, bUseNormals, nDiv, bGlobalIllumination);//CPU/OpenMP
     }
 } 
 //--------------------------------------------------------------------//
