@@ -20,7 +20,7 @@ No lighting (textures only)
 
 ![alt text](https://github.com/JohnLeber/MFC-Path-Tracer/blob/master/Images/64_textures_only.png)
 
-Default Sponza model (128 samples per pixel)
+Default Sponza model
 
 No lighting (textures only)         | Direct light only         |  Direct light and global illumination
 :-------------------------:|:-------------------------:|:-------------------------:
